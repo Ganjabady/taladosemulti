@@ -43,10 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ferritinFeedback.innerHTML = '';
 
         if (!weight || weight <= 0) return;
-
+        
         if (ferritin > 0) {
             ferritinFeedback.classList.remove('hidden');
-            if (ferritin < 1000) { ferritinFeedback.className = 'ferritin-feedback good'; ferritinFeedback.innerHTML = '<strong>عالیه!</strong> سطح فریتین شما در محدوده هدف و ایده‌آل قرار دارد. به همین مسیر خوب ادامه بده.'; } 
+            if (ferritin < 1000) { ferritinFeedback.className = 'ferritin-feedback good'; ferritinFeedback.innerHTML = '<strong>عالیه!</strong> سطح فریتین شما در محدوده هدف قرار دارد. به همین مسیر خوب ادامه بده.'; } 
             else if (ferritin >= 2500 && ferritin < 4000) { ferritinFeedback.className = 'ferritin-feedback high'; ferritinFeedback.innerHTML = '<strong>توجه:</strong> سطح فریتین شما بالاست. نگران نباشید، با درمان منظم کاهش پیدا می‌کند. حتماً در مورد دوز و برنامه درمانی خود با پزشک‌تان مشورت کنید.'; } 
             else if (ferritin >= 4000) { ferritinFeedback.className = 'ferritin-feedback very-high'; ferritinFeedback.innerHTML = '<strong>هشدار جدی:</strong> سطح فریتین شما بسیار بالاست. لطفاً در اسرع وقت با پزشک خود مشورت کنید. ممکن است نیاز به درمان ترکیبی یا اقدامات دیگر داشته باشید.'; }
             else { ferritinFeedback.classList.add('hidden'); }
@@ -55,6 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resultSection.classList.remove('hidden');
 
         if (isComboMode) {
+            if (ferritin > 0 && ferritin < 2000) {
+                addWarning('<strong>توجه:</strong> سطح فریتین شما مطلوب است. درمان ترکیبی معمولا برای فریتین‌های بسیار بالا توصیه می‌شود و برای شما ممکن است ریسک بالایی داشته باشد. <strong>حتماً با پزشک خود مشورت کنید.</strong>', 'warning');
+            }
             calculateCombinationTherapy(weight, ferritin);
         } else {
             switch (currentDrug) {
@@ -95,67 +98,75 @@ document.addEventListener('DOMContentLoaded', () => {
             const numVials = Math.ceil(totalDose / 500);
             doseDetails.innerHTML += `<span>${(numVials > 0) ? `معادل ${numVials} ویال ۵۰۰ میلی‌گرم` : `دوز بسیار پایین است`}</span>`;
         }
-        addWarning('<strong>روش مصرف:</strong> تزریق زیرپوستی با پمپ، معمولا طی ۸ تا ۱۲ ساعت و ۵ تا ۷ روز در هفته (طبق دستور پزشک).', 'info');
-        addWarning('<strong>پایش دوره‌ای:</strong> در درمان طولانی‌مدت، انجام شنوایی‌سنجی و بینایی‌سنجی سالانه توصیه می‌شود.', 'warning');
+        addWarning('<strong>پایش لازم:</strong> شنوایی‌سنجی و بینایی‌سنجی سالانه', 'info');
     };
 
     const calculateDeferasirox = (weight, ferritin) => {
-        if (ferritin > 0 && ferritin < 300) { resultMainTitle.textContent = 'دوز پیشنهادی روزانه'; doseText.textContent = "قطع موقت"; doseDetails.innerHTML = `<div class="dose-per-kg-text">(فریتین: ${ferritin})</div><span>سطح فریتین بسیار پایین است</span>`; addWarning('سطح فریتین زیر 300 است. مصرف دارو باید تا زمان افزایش فریتین، تحت نظر پزشک متوقف شود.', 'danger'); return; }
+        if (ferritin > 0 && ferritin < 300) { resultMainTitle.textContent = 'دوز پیشنهادی روزانه'; doseText.textContent = "قطع موقت"; doseDetails.innerHTML = `<div class="dose-per-kg-text">(فریتین: ${ferritin})</div><span>سطح فریتین بسیار پایین است</span>`; addWarning('سطح فریتین زیر 300 است. مصرف دارو باید متوقف شود.', 'danger'); return; }
         
-        const dosePerKg = getDosePerKg(ferritin, { low: 10, mid: 14, high: 24 }); // Jadenu doses
+        const dosePerKg = getDosePerKg(ferritin, { low: 10, mid: 14, high: 24 });
         const { totalDose, combination } = findTabletCombination(weight * dosePerKg, [360, 180, 90]);
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
         doseText.textContent = `${totalDose} mg`;
         doseDetails.innerHTML = `<div class="dose-per-kg-text">(بر اساس ${dosePerKg.toFixed(0)} mg/kg برای Jadenu)</div><span>${combination}</span>`;
-        addWarning('<strong>نوع قرص:</strong> این محاسبه برای قرص‌های **روکش‌دار** (مثل جیدنیو) است. اگر از قرص **حل‌شونده** (مثل اکسجید و اسورال) استفاده می‌کنید، دوز شما متفاوت است.', 'info');
-        addWarning('<strong>پایش دوره‌ای:</strong> در طول درمان، انجام ماهانه آزمایش‌ عملکرد کلیه (کراتینین) و کبد الزامی است.', 'warning');
+        addWarning('<strong>نوع قرص:</strong> محاسبه برای قرص **روکش‌دار** (مثل جیدنیو) است. برای قرص **حل‌شونده** (اکسجید/اسورال) دوز متفاوت است.', 'info');
+        addWarning('<strong>پایش لازم:</strong> آزمایش ماهانه عملکرد کلیه (کراتینین) و کبد', 'warning');
     };
 
     const calculateDeferiprone = (weight, ferritin) => {
         if (ferritin > 0 && ferritin < 500) addWarning('فریتین زیر ۵۰۰: مصرف دفریپرون معمولاً توصیه نمی‌شود. حتما با پزشک خود مشورت کنید.', 'danger');
+        
         const dosePerKg = getDosePerKg(ferritin, { low: 65, mid: 80, high: 95 });
-        let totalDose = Math.round((weight * dosePerKg) / 250) * 250;
-        const numTablets = totalDose / 500;
+        const totalDosePerDay = weight * dosePerKg;
+        const numTablets = Math.round(totalDosePerDay / 500); // Round to nearest whole tablet
+        const finalTotalDose = numTablets * 500;
+
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
-        doseText.textContent = `${totalDose} mg`;
+        doseText.textContent = `${finalTotalDose} mg`;
         doseDetails.innerHTML = `<div class="dose-per-kg-text">(بر اساس ${dosePerKg} mg/kg)</div><span>معادل ${numTablets} قرص ۵۰۰ میلی‌گرمی در روز</span>`;
-        if (numTablets > 0) { suggestionText.innerHTML = `<strong>نحوه مصرف:</strong> در ۳ نوبت مساوی در روز (هر ۸ ساعت). مثلاً: ${Math.round(numTablets/3)} قرص صبح، ${Math.floor(numTablets/3)} قرص ظهر و ${Math.floor(numTablets/3)} قرص شب.`; suggestionBox.classList.remove('hidden'); }
-        addWarning('<strong>هشدار بسیار مهم:</strong> هنگام مصرف دفریپرون، انجام هفتگی آزمایش خون (CBC) برای کنترل گلبول‌های سفید (ریسک نوتروپنی) الزامی است.', 'danger');
+        if (numTablets > 0) { suggestionText.innerHTML = `<strong>نحوه مصرف:</strong> در ۳ نوبت مساوی در روز (هر ۸ ساعت). مثلاً: ${Math.ceil(numTablets/3)} قرص صبح، ${Math.floor(numTablets/3)} قرص ظهر و ${Math.floor(numTablets/3)} قرص شب.`; suggestionBox.classList.remove('hidden'); }
+        addWarning('<strong>پایش لازم:</strong> آزمایش هفتگی خون (CBC) برای کنترل گلبول‌های سفید', 'danger');
     };
     
     const calculateCombinationTherapy = (weight, ferritin) => {
         const selectedDrugs = Array.from(document.querySelectorAll('input[name="combo_drug"]:checked')).map(el => el.value);
         doseText.textContent = ''; doseDetails.innerHTML = '';
         
-        if (selectedDrugs.length < 2) { addWarning('برای محاسبه درمان ترکیبی، لطفاً حداقل دو دارو را انتخاب کنید.', 'warning'); return; }
+        if (selectedDrugs.length < 2) { addWarning('برای محاسبه پروتکل درمان ترکیبی، لطفاً حداقل دو دارو را انتخاب کنید.', 'warning'); return; }
 
         resultMainTitle.textContent = 'پروتکل ترکیبی پیشنهادی';
+        let monitoring = new Set();
         
         if (selectedDrugs.length === 3) {
             const doseMap = ferritin > 5000 ? { dfp: 90, dfx: 35, dfo: 55, dfoDays: 4 } : { dfp: 80, dfx: 28, dfo: 45, dfoDays: 3 };
-            const dfpTotal = Math.round((weight * doseMap.dfp) / 250) * 250, dfpTablets = dfpTotal / 500;
+            const dfpTotal = Math.round((weight * doseMap.dfp) / 500) * 500;
             const dfxResult = findTabletCombination(weight * doseMap.dfx, [360, 180, 90]);
             const dfoTotal = Math.round(weight * doseMap.dfo);
-            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal}mg (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز</span></div>`
+            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal}mg (${dfpTotal/500} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز</span></div>`
                                   + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose}mg (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز</span></div>`
                                   + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotal}mg (${getVialText(dfoTotal).replace('معادل ','')})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfo} mg/kg)</span><span class="combo-days">${doseMap.dfoDays} روز در هفته</span></div>`;
-            addWarning('<strong>🚨 خطر! درمان سه‌دارویی 🚨</strong><br>این پروتکل بسیار پرخطر بوده و فقط در شرایط بحرانی (نارسایی قلبی)، در ICU و با نظارت لحظه‌ای تیم فوق تخصصی هماتولوژی/قلب استفاده می‌شود. این بخش صرفاً جهت آگاهی از پیچیدگی درمان است.', 'danger');
+            addWarning('<strong>🚨 خطر! درمان سه‌دارویی 🚨</strong><br>این پروتکل بسیار پرخطر بوده و فقط در شرایط بحرانی (مثل نارسایی قلبی)، در ICU و با نظارت لحظه‌ای تیم فوق تخصصی استفاده می‌شود. این بخش صرفاً جهت آگاهی از پیچیدگی درمان است.', 'danger');
+            monitoring.add('CBC هفتگی').add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
         } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferiprone')) {
             const doseMap = ferritin > 2500 ? { dfo: 45, dfp: 85, dfoDays: 3 } : { dfo: 35, dfp: 75, dfoDays: 2 };
             const dfoTotal = Math.round(weight * doseMap.dfo);
-            const dfpTotal = Math.round((weight * doseMap.dfp) / 250) * 250, dfpTablets = dfpTotal / 500;
-            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal}mg (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز</span></div>`
+            const dfpTotal = Math.round((weight * doseMap.dfp) / 500) * 500;
+            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal}mg (${dfpTotal/500} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز</span></div>`
                                   + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotal}mg (${getVialText(dfoTotal).replace('معادل ','')})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfo} mg/kg)</span><span class="combo-days">${doseMap.dfoDays} روز در هفته</span></div>`;
-        } else if (selectedDrugs.includes('deferasirox') && selectedDrugs.includes('deferiprone')) {
-            const doseMap = ferritin > 2500 ? { dfx: 25, dfp: 70 } : { dfx: 20, dfp: 65 };
+            monitoring.add('CBC هفتگی').add('شنوایی/بینایی سالانه');
+        } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferasirox')) {
+            const doseMap = ferritin > 2500 ? { dfo: 40, dfx: 25, dfoDays: 3 } : { dfo: 35, dfx: 20, dfoDays: 2 };
+            const dfoTotal = Math.round(weight * doseMap.dfo);
             const dfxResult = findTabletCombination(weight * doseMap.dfx, [360, 180, 90]);
-            const dfpTotal = Math.round((weight * doseMap.dfp) / 250) * 250, dfpTablets = dfpTotal / 500;
-            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal}mg (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز</span></div>`
-                                  + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose}mg (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز</span></div>`;
+            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotal}mg (${getVialText(dfoTotal).replace('معادل ','')})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfo} mg/kg)</span><span class="combo-days">${doseMap.dfoDays} روز در هفته</span></div>`
+                                  + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose}mg (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">در روزهای دیگر</span></div>`;
+            monitoring.add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
         } else {
              doseDetails.innerHTML = `<span>پروتکل ترکیبی برای این دو دارو استاندارد نیست. لطفاً با پزشک متخصص مشورت کنید.</span>`;
         }
-        if(selectedDrugs.length === 2) addWarning('<strong>خطر:</strong> درمان ترکیبی ریسک عوارض را افزایش می‌دهد و **فقط و فقط** باید تحت نظارت دقیق پزشک متخصص انجام شود. این بخش صرفاً جهت آشنایی است.', 'danger');
+
+        if(selectedDrugs.length === 2) addWarning('<strong>خطر:</strong> درمان ترکیبی ریسک عوارض را افزایش می‌دهد و <strong>فقط و فقط</strong> باید تحت نظارت دقیق پزشک متخصص انجام شود. این بخش صرفاً جهت آشنایی است.', 'danger');
+        if(monitoring.size > 0) addWarning(`<strong>پایش لازم:</strong> ${[...monitoring].join('، ')}`, 'warning');
     };
 
     const findTabletCombination = (targetDose, tablets) => {
