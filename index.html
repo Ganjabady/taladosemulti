@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تالادوز | دستیار هوشمند تالاسمی</title>
-    <meta name="description" content="محاسبه‌گر هوشمند، آفلاین و قابل نصب دوز داروهای آهن‌زدای تالاسمی با بازخورد هوشمند فریتین.">
+    <meta name="description" content="محاسبه‌گر هوشمند، آفلاین و قابل نصب دوز داروهای آهن‌زدای تالاسمی با پشتیبانی از درمان ترکیبی.">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Ganjabady/TalaDose1/refs/heads/main/taladoseicon250.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#14b8a6">
@@ -26,7 +26,8 @@
             <div class="theme-switcher">
                 <input type="checkbox" id="dark-mode-toggle" class="dark-mode-toggle">
                 <label for="dark-mode-toggle" class="dark-mode-label">
-                    <!-- SVG Icons for theme switcher -->
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 011.06-1.06l1.591 1.59a.75.75 0 01-1.06 1.06l-1.59-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.894 17.894a.75.75 0 01-1.06 1.06l-1.59-1.591a.75.75 0 011.06-1.06l1.59 1.591zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM5.106 17.894a.75.75 0 011.06 1.06l-1.59 1.591a.75.75 0 11-1.06-1.06l1.59-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.106 5.106a.75.75 0 01-1.06-1.06l1.59-1.591a.75.75 0 011.06 1.06L6.106 5.106z"/></svg>
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.459-1.402.75.75 0 01.982.826A11.25 11.25 0 0112 21a11.25 11.25 0 01-11.25-11.25 11.25 11.25 0 011.718-6.528.75.75 0 01.819.162z" clip-rule="evenodd" /></svg>
                 </label>
             </div>
         </div>
@@ -44,55 +45,49 @@
                 <label for="ferritin">۲. سطح فریتین (ng/mL)</label>
                 <input type="number" id="ferritin" placeholder="مثلاً: 1800" min="0">
             </div>
-<!-- در فایل index.html، جایگزین گروه "نوع تالاسمی" و "داروی مصرفی" شود -->
-
-<div class="form-group">
-    <label>۳. نوع درمان خود را انتخاب کنید</label>
-    <div class="radio-group" id="treatment-type-selector">
-        <input type="radio" id="mono-therapy" name="treatment_type" value="mono" checked>
-        <label for="mono-therapy">تک دارویی (معمولی)</label>
-        <input type="radio" id="combo-therapy" name="treatment_type" value="combo">
-        <label for="combo-therapy">درمان ترکیبی (پیشرفته)</label>
-    </div>
-</div>
-
-<!-- این بخش فقط وقتی "تک دارویی" انتخاب شده، نمایش داده می‌شود -->
-<div id="mono-therapy-controls">
-    <div class="form-group">
-        <label>داروی مصرفی</label>
-        <div class="drug-tabs">
-            <button class="tab-button active" data-drug="deferoxamine">دفروکسامین</button>
-            <button class="tab-button" data-drug="deferasirox">دفراسیروکس</button>
-            <button class="tab-button" data-drug="deferiprone">دفریپرون</button>
-        </div>
-    </div>
-</div>
-
-<!-- این بخش فقط وقتی "درمان ترکیبی" انتخاب شده، نمایش داده می‌شود -->
-<div id="combo-therapy-controls" class="hidden">
-    <div class="form-group">
-        <label>داروهای مصرفی خود را انتخاب کنید</label>
-        <div class="combo-checkboxes">
-            <input type="checkbox" id="combo-def" name="combo_drug" value="deferoxamine" checked>
-            <label for="combo-def">دفروکسامین</label>
-            
-            <input type="checkbox" id="combo-des" name="combo_drug" value="deferasirox" checked>
-            <label for="combo-des">دفراسیروکس</label>
-
-            <input type="checkbox" id="combo-dep" name="combo_drug" value="deferiprone">
-            <label for="combo-dep">دفریپرون</label>
-        </div>
-        <p class="combo-note">توجه: رایج‌ترین درمان ترکیبی، استفاده از دفروکسامین + دفراسیروکس است.</p>
-    </div>
-</div>
-
+            <div class="form-group">
+                <label>۳. نوع درمان</label>
+                <div class="radio-group" id="treatment-type-selector">
+                    <input type="radio" id="mono-therapy" name="treatment_type" value="mono" checked>
+                    <label for="mono-therapy">تک دارویی</label>
+                    <input type="radio" id="combo-therapy" name="treatment_type" value="combo">
+                    <label for="combo-therapy">درمان ترکیبی</label>
+                </div>
             </div>
-             <div class="form-group" id="deferoxamine-brand-group">
-                <label for="deferoxamine-brand">نوع ویال دفروکسامین</label>
-                <select id="deferoxamine-brand">
-                    <option value="500">ویال 500 میلی‌گرم</option>
-                    <option value="2000">ویال 2 گرم</option>
-                </select>
+
+            <div id="mono-therapy-controls">
+                <div class="form-group">
+                    <label>۴. داروی مصرفی</label>
+                    <div class="drug-tabs">
+                        <button class="tab-button active" data-drug="deferoxamine">دفروکسامین</button>
+                        <button class="tab-button" data-drug="deferasirox">دفراسیروکس</button>
+                        <button class="tab-button" data-drug="deferiprone">دفریپرون</button>
+                    </div>
+                </div>
+                <div class="form-group" id="deferoxamine-brand-group">
+                    <label for="deferoxamine-brand">نوع ویال دفروکسامین</label>
+                    <select id="deferoxamine-brand">
+                        <option value="500">ویال 500 میلی‌گرم</option>
+                        <option value="2000">ویال 2 گرم</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="combo-therapy-controls" class="hidden">
+                 <div class="form-group">
+                    <label>۴. داروهای مصرفی (دو مورد انتخاب شود)</label>
+                    <div class="combo-checkboxes">
+                        <input type="checkbox" id="combo-def" name="combo_drug" value="deferoxamine">
+                        <label for="combo-def">دفروکسامین</label>
+                        
+                        <input type="checkbox" id="combo-des" name="combo_drug" value="deferasirox">
+                        <label for="combo-des">دفراسیروکس</label>
+
+                        <input type="checkbox" id="combo-dep" name="combo_drug" value="deferiprone">
+                        <label for="combo-dep">دفریپرون</label>
+                    </div>
+                    <p class="combo-note">درمان ترکیبی فقط برای موارد خاص و با دستور پزشک است.</p>
+                </div>
             </div>
         </section>
         
@@ -100,10 +95,10 @@
 
         <section id="result-section" class="result-section hidden">
             <div id="result-box" class="result-box">
-                <h2 class="result-title">دوز پیشنهادی روزانه</h2>
+                <h2 id="result-main-title" class="result-title"></h2>
                 <p id="dose-text" class="dose-text"></p>
                 <p id="dose-per-kg-text" class="dose-per-kg-text"></p>
-                <p id="dose-details" class="dose-details"></p>
+                <div id="dose-details" class="dose-details"></div>
             </div>
             <div id="suggestion-box" class="suggestion-box hidden">
                 <p id="suggestion-text"></p>
@@ -111,12 +106,42 @@
             <div id="warning-messages" class="warning-messages"></div>
             <p class="final-disclaimer"><strong>توجه:</strong> این ابزار یک راهنمای اولیه است و هرگز جایگزین دستور پزشک معالج شما نمی‌شود.</p>
         </section>
-        
+
         <section class="card">
             <details>
                 <summary class="faq-title" style="margin-bottom: 0; cursor: pointer;">مشاهده لیست داروها، برندها و دوزها</summary>
                 <div style="overflow-x: auto; margin-top: 1.5rem;">
-                    <!-- Drug Table from previous response -->
+                    <table class="drug-table">
+                        <thead>
+                            <tr>
+                                <th>دارو</th>
+                                <th>نام تجاری</th>
+                                <th>شرکت</th>
+                                <th>دوزهای موجود (mg)</th>
+                                <th>نوع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td rowspan="7" class="drug-main-name">دفروکسامین</td><td>دسفوناک</td><td>روناک دارو</td><td>۵۰۰، ۲۰۰۰</td><td>ویال تزریقی</td></tr>
+                            <tr><td>دسفرال</td><td>نوارتیس</td><td>۵۰۰</td><td>ویال تزریقی</td></tr>
+                            <tr><td>Hospira</td><td>فایزر</td><td>۲۰۰۰</td><td>ویال تزریقی</td></tr>
+                            <tr><td>فروز آف</td><td>آفا شیمی</td><td>۵۰۰، ۲۰۰۰</td><td>ویال تزریقی</td></tr>
+                            <tr><td>دانا</td><td>داروسازی دانا</td><td>۵۰۰</td><td>ویال تزریقی</td></tr>
+                            <tr><td>دفروکسیر</td><td>اکسیر</td><td>۵۰۰</td><td>ویال تزریقی</td></tr>
+                            <tr><td>جابر</td><td>جابربن حیان</td><td>۵۰۰</td><td>ویال تزریقی</td></tr>
+                            <tr><td rowspan="9" class="drug-main-name">دفراسیروکس</td><td>اکسجید</td><td>نوارتیس</td><td>۱۲۵، ۲۵۰، ۵۰۰</td><td>قرص حل‌شونده</td></tr>
+                            <tr><td>جیدنیو</td><td>نوارتیس</td><td>۹۰، ۱۸۰، ۳۶۰</td><td>قرص روکش‌دار</td></tr>
+                            <tr><td>اسورال</td><td>اسوه</td><td>۱۲۵، ۲۵۰، ۵۰۰</td><td>قرص حل‌شونده</td></tr>
+                            <tr><td>الیرون</td><td>ابوریحان</td><td>۹۰، ۱۸۰، ۳۶۰</td><td>قرص روکش‌دار</td></tr>
+                            <tr><td>تالاجید</td><td>روناک دارو</td><td>۹۰، ۱۸۰، ۳۶۰</td><td>قرص روکش‌دار</td></tr>
+                            <tr><td>نانوجید</td><td>زیست اروند</td><td>۹۰، ۱۸۰، ۳۶۰</td><td>قرص روکش‌دار</td></tr>
+                            <tr><td>دفرازیت</td><td>زهراوی</td><td>۹۰، ۱۸۰، ۳۶۰</td><td>قرص روکش‌دار</td></tr>
+                            <tr><td>دفرازکس</td><td>اکسیر</td><td>۹۰، ۱۸۰، ۳۶۰</td><td>قرص روکش‌دار</td></tr>
+                            <tr><td>آوی سیروکس</td><td>اوه سینا</td><td>۹۰، ۱۸۰، ۳۶۰</td><td>قرص روکش‌دار</td></tr>
+                            <tr><td rowspan="2" class="drug-main-name">دفریپرون</td><td>ال‌وان</td><td>اوه سینا</td><td>۵۰۰</td><td>قرص روکش‌دار</td></tr>
+                            <tr><td>آوی دفرون</td><td>اوه سینا</td><td>۵۰۰</td><td>قرص جوشان</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </details>
         </section>
@@ -124,30 +149,51 @@
         <section id="faq" class="card">
             <h2 class="faq-title">سوالات متداول (FAQ)</h2>
             <div class="faq-container">
-                 <!-- FAQ items from previous response -->
+                 <details>
+                    <summary>چرا باید از داروهای آهن‌زدا استفاده کنم؟</summary>
+                    <p>در بیماران تالاسمی، تزریق مکرر خون باعث جمع شدن آهن در بدن می‌شود. این آهن اضافی به اعضای حیاتی مثل قلب و کبد آسیب می‌زند. داروهای آهن‌زدا (شلاتور) این آهن اضافی را از بدن دفع می‌کنند.</p>
+                </details>
+                <details>
+                    <summary>بهترین زمان مصرف داروها کی است؟</summary>
+                    <p>دفروکسامین معمولاً شب‌ها با پمپ و به صورت زیرپوستی تزریق می‌شود. دفراسیروکس (مثل جیدنیو) صبح‌ها با معده خالی و دفریپرون سه بار در روز مصرف می‌شود. همیشه طبق دستور پزشک خود عمل کنید.</p>
+                </details>
+                 <details>
+                    <summary>فریتین خونم باید چند باشد؟</summary>
+                    <p>هدف اصلی درمان، نگه داشتن سطح فریتین سرم زیر 1000 ng/mL است. البته این عدد برای هر شخص متفاوت است و پزشک شما بهترین هدف را برایتان تعیین می‌کند.</p>
+                </details>
+                <details>
+                    <summary>کدام دارو برای آهن قلب بهتر است؟</summary>
+                    <p>مطالعات نشان داده‌اند که "دفریپرون" (با نام تجاری ال‌وان) به دلیل نفوذ بهتر به سلول‌های قلبی، در کاهش آهن اضافی قلب موثرتر است.</p>
+                </details>
+                <details>
+                    <summary>درمان ترکیبی چیست؟</summary>
+                    <p>در موارد خاصی که سطح آهن بدن خیلی بالاست یا به یک دارو پاسخ خوبی نمی‌دهد، پزشک ممکن است استفاده همزمان از دو دارو (مثلا دفروکسامین و دفراسیروکس) را تجویز کند. این روش بسیار موثر است اما به نظارت دقیق پزشکی نیاز دارد.</p>
+                </details>
             </div>
         </section>
 
         <section class="card">
-            <h2 class="faq-title">منابع و مآخذ (۲۰۲۵)</h2>
-            <div class="references">
-                <p>منطق محاسبات و هشدارهای این برنامه بر اساس آخرین راهنماهای بالینی و مقالات منتشر شده از معتبرترین مراجع علمی جهان در زمینه تالاسمی استوار است:</p>
-                <ul>
-                    <li>National Institutes of Health (NIH)</li>
-                    <li>American Society of Hematology (ASH)</li>
-                    <li>Thalassaemia International Federation (TIF)</li>
-                    <li>The Lancet Haematology</li>
-                    <li>StatPearls</li>
-                </ul>
-            </div>
+            <details>
+                <summary class="faq-title" style="margin-bottom: 0; cursor: pointer;">منابع و مآخذ علمی (۲۰۲۵)</summary>
+                <div class="references">
+                    <p>منطق محاسبات و هشدارهای این برنامه بر اساس آخرین راهنماهای بالینی و مقالات منتشر شده از معتبرترین مراجع علمی جهان در زمینه تالاسمی استوار است:</p>
+                    <ul>
+                        <li>National Institutes of Health (NIH)</li>
+                        <li>American Society of Hematology (ASH)</li>
+                        <li>Thalassaemia International Federation (TIF)</li>
+                        <li>The Lancet Haematology</li>
+                        <li>StatPearls</li>
+                    </ul>
+                </div>
+            </details>
         </section>
     </main>
 
     <footer class="footer">
         <div class="container">
-            <p>طراحی و توسعه با عشق برای قهرمانان تالاسمی ایران | <strong>حسین حوت گنج آبادی</strong></p>
-            <a href="https://wa.me/989031375909" target="_blank" class="whatsapp-button">
-                 <!-- Whatsapp Icon SVG -->
+            <p>طراحی و توسعه با عشق برای قهرمانان تالاسمی ایران | <strong>حسین حوت</strong></p>
+            <a href="https://wa.me/989xxxxxxxxx" target="_blank" class="whatsapp-button">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.8 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.8-16.4-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
                 <span>ارسال پیشنهاد و نظر</span>
             </a>
         </div>
