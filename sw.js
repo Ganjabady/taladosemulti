@@ -1,10 +1,10 @@
-const CACHE_NAME = 'taladose-v6-final'; // Cache version updated!
+const CACHE_NAME = 'taladose-v7-masterpiece'; // Cache version updated!
 const urlsToCache = [
   '/',
   '/index.html',
   '/css/style.css',
   '/js/main.js',
-  'https://raw.githubusercontent.com/Ganjabady/TalaDose/5558bfd49b93a40b376ff43a2d3673873f04ccdf/fav.png',
+  'https://raw.githubusercontent.com/Ganjabady/TalaDose1/main/taladoseicon250.png',
   'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap'
 ];
 
