@@ -4,7 +4,7 @@ const urlsToCache = [
   '/index.html',
   '/css/style.css',
   '/js/main.js',
-  'https://raw.githubusercontent.com/Ganjabady/TalaDose/5558bfd49b93a40b376ff43a2d3673873f04ccdf/fav.png',
+  'https://raw.githubusercontent.com/Ganjabady/TalaDose1/refs/heads/main/taladoseicon250.png',
   'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap'
 ];
 
