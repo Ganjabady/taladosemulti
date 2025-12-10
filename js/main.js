@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalVials;
 
         if (preferredVial === '2000mg') {
-            // Priority on 2000mg vials
+            // Priority on 2000mg vials (to minimize number of vials)
             let rem = roundedDose;
             const num2000mg = Math.floor(rem / 2000);
             rem %= 2000;
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             totalVials = num2000mg + num500mg;
 
         } else {
-            // Priority on 500mg vials (default)
+            // Priority on 500mg vials (default/common)
             totalVials = Math.ceil(roundedDose / 500);
             mainPresentation = `${totalVials} ویال ۵۰۰ میلی‌گرم`;
         }
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         remOpt %= 2000;
         const num500mgOpt = Math.round(remOpt / 500);
         const optimizedVialsCount = num2000mgOpt + num500mgOpt;
-
+        
         let suggestion = '';
         if (optimizedVialsCount < totalVials) {
             let optimizedParts = [];
@@ -119,6 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (num500mgOpt > 0) optimizedParts.push(`${num500mgOpt} ویال ۵۰۰ میلی‌گرم`);
             
             suggestion = `<strong>پیشنهاد صرفه‌جویی:</strong> برای کاهش تعداد ویال‌های مصرفی و راحتی بیشتر، می‌توانید از ترکیب ${optimizedParts.join(' + ')} استفاده کنید.`;
+        } else if (preferredVial === '500mg' && roundedDose >= 2000) {
+             suggestion = `<strong>توجه:</strong> اگر ویال ۲ گرمی در دسترس است، برای راحتی بیشتر می‌توانید به جای ۴ ویال ۵۰۰ میلی‌گرمی، از ۱ ویال ۲ گرمی استفاده کنید.`;
         }
         
         return { mainText: `معادل ${mainPresentation}`, suggestion: suggestion, totalVials: totalVials };
