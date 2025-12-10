@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const weightInput = document.getElementById('weight');
     const ferritinInput = document.getElementById('ferritin');
-    const tdtRadio = document.getElementById('tdt');
     const drugTabs = document.querySelectorAll('.tab-button');
     const deferoxamineBrandGroup = document.getElementById('deferoxamine-brand-group');
     const deferoxamineBrandSelect = document.getElementById('deferoxamine-brand');
@@ -72,16 +71,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    const calculateBaseDose = (ferritin, isTDT) => {
-        let baseDosePerKg = isTDT ? 40 : 25;
-        if (ferritin > 2500) return Math.min(baseDosePerKg * 1.20, 60);
-        if (ferritin < 1000 && isTDT) return Math.max(baseDosePerKg * 0.80, 20);
-        return baseDosePerKg;
+    const calculateBaseDose = (ferritin, doseMap) => {
+        if (ferritin > 2500) return doseMap.high;
+        if (ferritin < 1000) return doseMap.low;
+        return doseMap.mid;
+    };
+    
+    const getVialText = (totalDose) => {
+        const floor2g = Math.floor(totalDose / 2000), remainder = totalDose % 2000, needed500 = Math.ceil(remainder / 500);
+        let detailText;
+        if (remainder > 0 && needed500 * 500 >= 2000) { detailText = `${Math.ceil(totalDose / 2000)} ویال ۲ گرم`; }
+        else { const parts = []; if (floor2g > 0) parts.push(`${floor2g} ویال ۲ گرم`); if (needed500 > 0) parts.push(`${needed500} ویال ۵۰۰ میلی‌گرم`); if (parts.length === 0 && totalDose > 0) parts.push('۱ ویال ۵۰۰ میلی‌گرم'); detailText = parts.join(' + '); }
+        return `معادل ${detailText || 'دوز بسیار پایین است'}`;
     };
 
     const calculateDeferoxamine = (weight, ferritin) => {
-        const isTDT = document.getElementById('tdt').checked;
-        const finalDosePerKg = Math.round(calculateBaseDose(ferritin, isTDT));
+        const finalDosePerKg = Math.round(calculateBaseDose(ferritin, { low: 25, mid: 40, high: 50 }));
         const totalDose = Math.round(weight * finalDosePerKg);
 
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
@@ -90,11 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         doseDetails.innerHTML = '';
 
         if (deferoxamineBrandSelect.value === '2000') {
-            const floor2g = Math.floor(totalDose / 2000), remainder = totalDose % 2000, needed500 = Math.ceil(remainder / 500);
-            let detailText;
-            if (remainder > 0 && needed500 * 500 >= 2000) { detailText = `${Math.ceil(totalDose / 2000)} ویال ۲ گرم`; }
-            else { const parts = []; if (floor2g > 0) parts.push(`${floor2g} ویال ۲ گرم`); if (needed500 > 0) parts.push(`${needed500} ویال ۵۰۰ میلی‌گرم`); if (parts.length === 0 && totalDose > 0) parts.push('۱ ویال ۵۰۰ میلی‌گرم'); detailText = parts.join(' + '); }
-            doseDetails.innerHTML = `<span>معادل ${detailText || 'دوز بسیار پایین است'}</span>`;
+             doseDetails.innerHTML = `<span>${getVialText(totalDose)}</span>`;
             const total500Vials = Math.ceil(totalDose / 500);
             if (total500Vials > 0) { suggestionText.innerHTML = `<strong>پیشنهاد جایگزین:</strong> برای سادگی یا دقت بیشتر، می‌توانید از <strong>${total500Vials} ویال ۵۰۰ میلی‌گرمی</strong> استفاده کنید.`; suggestionBox.classList.remove('hidden'); }
         } else {
@@ -106,11 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const calculateDeferasirox = (weight, ferritin) => {
-        const isTDT = document.getElementById('tdt').checked;
-        let dosePerKg = isTDT ? 21 : 7;
-        if (ferritin > 2500) dosePerKg = isTDT ? 28 : 14;
         if (ferritin < 300) { resultMainTitle.textContent = 'دوز پیشنهادی روزانه'; doseText.textContent = "قطع موقت"; dosePerKgText.textContent = `(فریتین: ${ferritin})`; doseDetails.innerHTML = "<span>سطح فریتین بسیار پایین است</span>"; addWarning('سطح فریتین زیر 300 است. مصرف دارو باید تا زمان افزایش فریتین، تحت نظر پزشک متوقف شود.', 'danger'); return; }
-        dosePerKg = Math.min(dosePerKg, 28);
+        
+        const dosePerKg = calculateBaseDose(ferritin, { low: 20, mid: 21, high: 30 });
         const { totalDose, combination } = findTabletCombination(weight * dosePerKg, [360, 180, 90]);
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
         doseText.textContent = `${totalDose} mg`;
@@ -121,9 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const calculateDeferiprone = (weight, ferritin) => {
-        let dosePerKg = 75;
         if (ferritin < 500) addWarning('فریتین زیر ۵۰۰: مصرف دفریپرون معمولاً توصیه نمی‌شود. حتما با پزشک خود مشورت کنید.', 'danger');
-        dosePerKg = Math.min(dosePerKg, 99);
+        const dosePerKg = calculateBaseDose(ferritin, { low: 75, mid: 75, high: 90 });
         let totalDose = Math.round((weight * dosePerKg) / 250) * 250;
         const numTablets = totalDose / 500;
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
@@ -145,16 +143,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         resultMainTitle.textContent = 'پروتکل ترکیبی پیشنهادی';
         
-        if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferasirox')) {
-            const defDose = Math.round(weight * 40), desDose = Math.round(weight * 21);
-            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${defDose} میلی‌گرم</span><span class="combo-days">۲ تا ۳ روز در هفته</span></div><div class="combo-result"><span><strong>دفراسیروکس:</strong> ${desDose} میلی‌گرم</span><span class="combo-days">در روزهای دیگر</span></div>`;
-        } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferiprone')) {
-            const defDose = Math.round(weight * 40), depDose = Math.round((weight * 75) / 250) * 250;
-            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${defDose} میلی‌گرم</span><span class="combo-days">۲ تا ۳ روز در هفته</span></div><div class="combo-result"><span><strong>دفریپرون:</strong> ${depDose} میلی‌گرم</span><span class="combo-days">هر روز</span></div>`;
+        if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferiprone')) {
+            const dfoDosePerKg = 45, dfpDosePerKg = 85;
+            const dfoTotal = Math.round(weight * dfoDosePerKg);
+            const dfpTotal = Math.round((weight * dfpDosePerKg) / 250) * 250;
+            const dfpTablets = dfpTotal/500;
+
+            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotal} میلی‌گرم (${getVialText(dfoTotal).replace('معادل ','')})</span><span class="combo-days">۲ تا ۳ روز در هفته</span></div><div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTablets} قرص روزانه)</span><span class="combo-days">هر روز</span></div>`;
+        } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferasirox')) {
+            const dfoDosePerKg = 40, dfxDosePerKg = 25;
+            const dfoTotal = Math.round(weight * dfoDosePerKg);
+            const dfxResult = findTabletCombination(weight * dfxDosePerKg, [360, 180, 90]);
+
+            doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotal} میلی‌گرم (${getVialText(dfoTotal).replace('معادل ','')})</span><span class="combo-days">۲ تا ۳ روز در هفته</span></div><div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="combo-days">در روزهای دیگر</span></div>`;
         } else {
              doseDetails.innerHTML = `<span>پروتکل ترکیبی برای این دو دارو کمتر رایج است. لطفاً با پزشک متخصص مشورت کنید.</span>`;
         }
-        addWarning('<strong>خطر بسیار مهم:</strong> درمان ترکیبی ریسک عوارض را افزایش می‌دهد و **فقط و فقط** باید تحت نظارت دقیق پزشک متخصص انجام شود. این بخش صرفاً جهت آشنایی است.', 'danger');
+        addWarning('<strong>خطر بسیار مهم:</strong> درمان ترکیبی ریسک عوارض را افزایش می‌دهد و <strong>فقط و فقط</strong> باید تحت نظارت دقیق پزشک متخصص انجام شود. این بخش صرفاً جهت آشنایی است.', 'danger');
     };
 
     const findTabletCombination = (targetDose, tablets) => {
@@ -182,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     
     comboCheckboxes.forEach(cb => cb.addEventListener('change', calculateAndDisplay));
-    [weightInput, ferritinInput, document.getElementById('tdt'), document.getElementById('ntdt'), deferoxamineBrandSelect].forEach(el => el.addEventListener('input', calculateAndDisplay));
+    [weightInput, ferritinInput, deferoxamineBrandSelect].forEach(el => el.addEventListener('input', calculateAndDisplay));
     darkModeToggle.addEventListener('change', toggleTheme);
 
     // --- PWA Service Worker Registration ---
