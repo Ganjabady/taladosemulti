@@ -1,7 +1,7 @@
 /* --- GLOBAL STYLES & VARIABLES --- */
 :root {
     --font-family: 'Vazirmatn', sans-serif;
-
+    
     /* Light Theme Palette (Teal) */
     --c-primary: #14b8a6; /* teal-500 */
     --c-primary-dark: #0f766e; /* teal-700 */
@@ -161,6 +161,9 @@ input[type="number"]:focus, select:focus {
 .dose-text { font-size: 2.75rem; font-weight: 800; line-height: 1.2; letter-spacing: -1px; }
 .dose-details { font-size: 1.1rem; font-weight: 500; opacity: 0.9; margin-top: 0.5rem;}
 .dose-details .dose-per-kg-text { font-size: 0.9rem; opacity: 0.7; }
+.dose-details span[dir="ltr"] {
+    display: inline-block;
+}
 
 .combo-result { display: flex; flex-direction: column; gap: 0.5rem; text-align: center; padding: 0.75rem 0; border-bottom: 1px solid color-mix(in srgb, var(--c-white) 20%, transparent); }
 .combo-result:last-child { border-bottom: none; }
