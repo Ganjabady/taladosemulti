@@ -258,3 +258,37 @@ details p { margin-top: 0.75rem; padding-right: 2rem; color: var(--c-text-second
 .sun, .moon { width: 16px; height: 16px; }
 .sun { color: #f59e0b; }
 .moon { color: #f1f5f9; }
+/* به انتهای فایل style.css اضافه شود */
+.combo-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+.combo-checkboxes input { display: none; }
+.combo-checkboxes label {
+    text-align: center;
+    padding: 0.8rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--c-text-secondary);
+    border: 1px solid var(--c-border);
+    background-color: var(--c-card);
+    transition: all 0.2s ease-out;
+}
+.combo-checkboxes label:hover {
+    border-color: var(--c-primary);
+    color: var(--c-primary);
+}
+.combo-checkboxes input:checked + label {
+    background-color: var(--c-primary);
+    color: var(--c-white);
+    border-color: var(--c-primary);
+    box-shadow: 0 2px 5px color-mix(in srgb, var(--c-primary) 30%, transparent);
+}
+.combo-note {
+    font-size: 0.85rem;
+    color: var(--c-text-secondary);
+    text-align: center;
+    margin-top: 1rem;
+}
