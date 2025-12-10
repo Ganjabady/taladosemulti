@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         resultSection.classList.add('hidden');
         ferritinFeedback.classList.add('hidden');
-        suggestionBox.classList.add('hidden');
+        suggestionBox.classList.add('hidden'); // Reset suggestion box
         warningMessages.innerHTML = '';
         ferritinFeedback.innerHTML = '';
 
@@ -75,32 +75,46 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ferritin > 0 && ferritin < 1000) return doseMap.low;
         return doseMap.mid;
     };
-    
-    // --- NEW: Helper function to calculate DFO dose based on common vials (Prioritizing 2000mg) ---
-    const getVialText = (totalDose) => {
-        if (totalDose <= 0) return 'دوز بسیار پایین است';
-        
-        const roundedDose = Math.round(totalDose / 500) * 500; // Round to nearest 500mg (half vial)
-        
-        let rem = roundedDose;
-        const num2000mg = Math.floor(rem / 2000);
-        rem %= 2000;
-        const num500mg = Math.round(rem / 500); // Remaining is rounded to the nearest 500mg
 
-        let detailText = [];
-        if (num2000mg > 0) detailText.push(`${num2000mg} ویال ۲ گرم`);
-        if (num500mg > 0) detailText.push(`${num500mg} ویال ۵۰۰ میلی‌گرم`);
+    // --- REVISED: DFO Helper function to prioritize 500mg and suggest 2000mg vials ---
+    const getVialText = (totalDose) => {
+        if (totalDose <= 0) return { mainText: 'دوز بسیار پایین است', suggestion: '' };
         
-        if (detailText.length === 0 && roundedDose > 0) detailText.push('۱ ویال ۵۰۰ میلی‌گرم'); // Minimum dose
+        const roundedDose = Math.round(totalDose / 500) * 500; 
+        let rem = roundedDose;
+        const total500Vials = Math.ceil(roundedDose / 500);
+
+        // Presentation Logic 1: Based on common 500mg vials
+        const mainPresentation = `${total500Vials} ویال ۵۰۰ میلی‌گرم`;
         
-        return `معادل ${detailText.join(' + ')}`;
+        // Presentation Logic 2: Optimized combination for convenience (prioritizes 2g)
+        let rem2 = roundedDose;
+        const num2000mg = Math.floor(rem2 / 2000);
+        rem2 %= 2000;
+        const num500mg = Math.round(rem2 / 500);
+
+        let suggestion = '';
+        if (num2000mg > 0) {
+             let optimizedVials = [];
+             if (num2000mg > 0) optimizedVials.push(`${num2000mg} ویال ۲ گرم`);
+             if (num500mg > 0) optimizedVials.push(`${num500mg} ویال ۵۰۰ میلی‌گرم`);
+             
+             // Suggest using 2g if it reduces the total number of vials
+             if (optimizedVials.length < total500Vials) {
+                 suggestion = `<strong>پیشنهاد صرفه‌جویی:</strong> برای کاهش تعداد تزریق و راحتی بیشتر، می‌توانید از ترکیب ${optimizedVials.join(' + ')} استفاده کنید.`;
+             }
+        } else if (total500Vials > 0 && total500Vials < 4) {
+             suggestion = `<strong>توجه:</strong> دوز نهایی شما با ${total500Vials} ویال ۵۰۰ میلی‌گرم پوشش داده می‌شود.`;
+        }
+
+        return { mainText: `معادل ${mainPresentation}`, suggestion: suggestion, totalVials: total500Vials };
     };
 
     const calculateDeferoxamine = (weight, ferritin) => {
         let dosePerKg = getDosePerKg(ferritin, { low: 30, mid: 42, high: 55 });
         dosePerKg = Math.min(dosePerKg, 60); // Max Dose Cap
         
-        // --- Intelligent Rounding for DFO (Round to nearest 500mg for practicality) ---
+        // Intelligent Rounding for DFO (Round to nearest 500mg for practicality)
         const targetDose = weight * dosePerKg;
         const totalDose = Math.round(targetDose / 500) * 500; 
 
@@ -108,14 +122,22 @@ document.addEventListener('DOMContentLoaded', () => {
         doseText.textContent = `${totalDose} میلی‌گرم`;
         doseDetails.innerHTML = `<div class="dose-per-kg-text">(بر اساس ${dosePerKg.toFixed(0)} میلی‌گرم بر کیلوگرم)</div>`;
 
-        // Brand logic is kept but output is based on standard vial availability (2g and 500mg)
-        doseDetails.innerHTML += `<span>${getVialText(totalDose)}</span>`;
+        const vialInfo = getVialText(totalDose);
+        doseDetails.innerHTML += `<span>${vialInfo.mainText}</span>`;
         
+        // Display DFO suggestion
+        if (vialInfo.suggestion) {
+            suggestionText.innerHTML = vialInfo.suggestion; 
+            suggestionBox.classList.remove('hidden'); 
+        }
+
         addWarning('<strong>پایش لازم:</strong> شنوایی‌سنجی و بینایی‌سنجی سالانه', 'info');
     };
 
     const calculateDeferasirox = (weight, ferritin) => {
-        if (ferritin > 0 && ferritin < 300) { resultMainTitle.textContent = 'دوز پیشنهادی روزانه'; doseText.textContent = "قطع موقت"; doseDetails.innerHTML = `<div class="dose-per-kg-text">(فریتین: ${ferritin})</div><span>سطح فریتین بسیار پایین است</span>`; addWarning('سطح فریتین زیر 300 است. مصرف دارو باید متوقف شود.', 'danger'); return; }
+        if (ferritin > 0 && ferritin < 300) { 
+            resultMainTitle.textContent = 'دوز پیشنهادی روزانه'; doseText.textContent = "قطع موقت"; doseDetails.innerHTML = `<div class="dose-per-kg-text">(فریتین: ${ferritin})</div><span>سطح فریتین بسیار پایین است</span>`; addWarning('سطح فریتین زیر 300 است. مصرف دارو باید متوقف شود.', 'danger'); return; 
+        }
 
         const dfxType = deferasiroxTypeSelect.value;
         let dosePerKg, maxDose, tabletSizes, doseUnit;
@@ -124,22 +146,27 @@ document.addEventListener('DOMContentLoaded', () => {
             dosePerKg = getDosePerKg(ferritin, { low: 10, mid: 14, high: 24 });
             maxDose = 28;
             tabletSizes = [360, 180, 90];
-            doseUnit = 90; // Smallest common dose size
+            doseUnit = 90; 
         } else { // EXJADE (500, 250, 125)
             dosePerKg = getDosePerKg(ferritin, { low: 15, mid: 20, high: 35 });
             maxDose = 40;
             tabletSizes = [500, 250, 125];
-            doseUnit = 125; // Smallest common dose size
+            doseUnit = 125; 
         }
 
         dosePerKg = Math.min(dosePerKg, maxDose);
-        // --- Intelligent Rounding for DFX (Round to nearest dose unit) ---
-        const { totalDose, combination } = findTabletCombination(weight * dosePerKg, tabletSizes, doseUnit);
+        const doseResult = findTabletCombination(weight * dosePerKg, tabletSizes, doseUnit);
 
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
-        doseText.textContent = `${totalDose} میلی‌گرم`;
-        doseDetails.innerHTML = `<div class="dose-per-kg-text">(بر اساس ${dosePerKg.toFixed(0)} میلی‌گرم بر کیلوگرم)</div><span>${combination}</span>`;
+        doseText.textContent = `${doseResult.totalDose} میلی‌گرم`;
+        doseDetails.innerHTML = `<div class="dose-per-kg-text">(بر اساس ${dosePerKg.toFixed(0)} میلی‌گرم بر کیلوگرم)</div><span>${doseResult.combination}</span>`;
         addWarning('<strong>پایش لازم:</strong> آزمایش ماهانه عملکرد کلیه (کراتینین) و کبد', 'warning');
+
+        // Display DFX suggestion
+        if (doseResult.suggestion) {
+            suggestionText.innerHTML = doseResult.suggestion; 
+            suggestionBox.classList.remove('hidden'); 
+        }
     };
 
     const calculateDeferiprone = (weight, ferritin) => {
@@ -149,14 +176,17 @@ document.addEventListener('DOMContentLoaded', () => {
         dosePerKg = Math.min(dosePerKg, 99);
         const totalDosePerDay = weight * dosePerKg;
         
-        // --- Intelligent Rounding for DFP (Round to nearest WHOLE tablet of 500mg) ---
+        // Intelligent Rounding for DFP (Round to nearest WHOLE tablet of 500mg)
         const numTablets = Math.round(totalDosePerDay / 500); 
         const finalTotalDose = numTablets * 500;
 
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
         doseText.textContent = `${finalTotalDose} میلی‌گرم`;
         doseDetails.innerHTML = `<div class="dose-per-kg-text">(بر اساس ${dosePerKg.toFixed(0)} میلی‌گرم بر کیلوگرم)</div><span>معادل ${numTablets} قرص ۵۰۰ میلی‌گرمی در روز</span>`;
-        if (numTablets > 0) { suggestionText.innerHTML = `<strong>نحوه مصرف:</strong> در ۳ نوبت در روز. مثلاً: ${Math.ceil(numTablets / 3)} قرص صبح، ${Math.floor(numTablets / 3)} قرص ظهر و ${Math.floor(numTablets / 3)} قرص شب.`; suggestionBox.classList.remove('hidden'); }
+        if (numTablets > 0) { 
+            suggestionText.innerHTML = `<strong>نحوه مصرف:</strong> در ۳ نوبت در روز. مثلاً: ${Math.ceil(numTablets / 3)} قرص صبح، ${Math.floor(numTablets / 3)} قرص ظهر و ${Math.floor(numTablets / 3)} قرص شب.`; 
+            suggestionBox.classList.remove('hidden'); 
+        }
         addWarning('<strong>پایش لازم:</strong> آزمایش هفتگی خون (CBC) برای کنترل گلبول‌های سفید', 'danger');
     };
 
@@ -171,14 +201,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let htmlDetails = '';
 
         if (selectedDrugs.includes('deferiprone') && selectedDrugs.includes('deferasirox')) {
-             // DFP + DFX Combo - Both are daily and primary
              const doseMap = ferritin > 5000 ? { dfp: 90, dfx: 28 } : { dfp: 75, dfx: 24 };
-             
-             // DFP: Round to nearest 500mg tablet
              const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
              const dfpTablets = dfpTotal / 500;
-             
-             // DFX: Round to nearest 90mg (Jadenu) - Use 90 as the common unit
              const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90);
 
              htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
@@ -188,56 +213,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         } else if (selectedDrugs.includes('deferiprone') && selectedDrugs.includes('deferoxamine')) {
-            // DFP + DFO Combo - DFP is daily base, DFO is intermittent
-            const dfoDays = ferritin > 4000 ? 5 : ferritin > 2500 ? 4 : 3; // Days per week for DFO
-            const baseDosePerDay = ferritin > 5000 ? 100 : ferritin > 2500 ? 90 : 80; // Total DFP+DFO mg/kg/day equivalent
+            const dfoDays = ferritin > 4000 ? 5 : ferritin > 2500 ? 4 : 3; 
+            const baseDosePerDay = ferritin > 5000 ? 100 : ferritin > 2500 ? 90 : 80; 
             
-            const dfpKg = Math.min(75, baseDosePerDay - 25); // DFP base dose (max 75 mg/kg)
-            const dfoKgEquivalent = baseDosePerDay - dfpKg; // Remaining is DFO
+            const dfpKg = Math.min(75, baseDosePerDay - 25); 
+            const dfoKgEquivalent = baseDosePerDay - dfpKg; 
             
-            // DFP: Daily dose
             const dfpTotal = Math.round((weight * dfpKg) / 500) * 500;
             const dfpTablets = dfpTotal / 500;
             
-            // DFO: Calculate injection dose (DFO dose * Days per week / 7) => DFO dose/day equivalent
-            // Injection Dose per Day = (dfoKgEquivalent / dfoDays) * 7 * weight
-            const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500; // Round to 500mg
-            
+            const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500;
+            const dfoVialInfo = getVialText(dfoTotalInjectionDose);
+
             htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${dfpKg} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
-                         + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${getVialText(dfoTotalInjectionDose).replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
+                         + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
             monitoring.add('CBC هفتگی').add('شنوایی/بینایی سالانه');
 
         } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferasirox')) {
-            // DFX + DFO Combo - DFX is daily base, DFO is intermittent or alternate
-            const dfoDays = ferritin > 4000 ? 4 : ferritin > 2500 ? 3 : 2; // Days per week for DFO
-            const baseDosePerDay = ferritin > 5000 ? 50 : ferritin > 2500 ? 45 : 40; // Total DFX+DFO mg/kg/day equivalent
+            const dfoDays = ferritin > 4000 ? 4 : ferritin > 2500 ? 3 : 2; 
+            const baseDosePerDay = ferritin > 5000 ? 50 : ferritin > 2500 ? 45 : 40; 
             
-            const dfxKg = Math.min(25, baseDosePerDay - 15); // DFX base dose (max 25 mg/kg)
-            const dfoKgEquivalent = baseDosePerDay - dfxKg; // Remaining is DFO
+            const dfxKg = Math.min(25, baseDosePerDay - 15); 
+            const dfoKgEquivalent = baseDosePerDay - dfxKg; 
             
-            // DFX: Daily dose (Round to nearest 90mg)
             const dfxResult = findTabletCombination(weight * dfxKg, [360, 180, 90], 90);
             
-            // DFO: Calculate injection dose
-            const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500; // Round to 500mg
-            
+            const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500; 
+            const dfoVialInfo = getVialText(dfoTotalInjectionDose);
+
             htmlDetails += `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${dfxKg.toFixed(0)} mg/kg)</span><span class="combo-days"><strong>در روزهای بدون تزریق</strong></span></div>`
-                         + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${getVialText(dfoTotalInjectionDose).replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span></span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
+                         + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span></span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
             monitoring.add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
             addWarning('<strong>تذکر:</strong> بهتر است دفرازیروکس و دفروکسامین در **روزهای متفاوت** مصرف شوند تا ریسک عوارض کلیوی کاهش یابد.', 'warning');
         
         } else if (selectedDrugs.length === 3) {
-            // Triple Therapy (Emergency only)
             const doseMap = ferritin > 5000 ? { dfp: 80, dfx: 20, dfo: 50, dfoDays: 5 } : { dfp: 70, dfx: 15, dfo: 40, dfoDays: 4 };
             
             const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
             const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90);
             const dfoTotalInjectionDose = Math.round((weight * doseMap.dfo * 7 / doseMap.dfoDays) / 500) * 500;
+            const dfoVialInfo = getVialText(dfoTotalInjectionDose);
 
             htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTotal/500} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
                           + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز (یک نوبت)</span></div>`
-                          + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${getVialText(dfoTotalInjectionDose).replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${doseMap.dfo} mg/kg روزانه)</span><span class="combo-days"><strong>${doseMap.dfoDays} روز در هفته</strong></span></div>`;
-            addWarning('<strong>🚨 خطر! درمان سه‌دارویی 🚨</strong><br>این پروتکل بسیار پرخطر بوده و فقط در شرایط بحرانی (مثل نارسایی قلبی)، در ICU و با نظارت لحظه‌ای تیم فوق تخصصی استفاده می‌شود.', 'danger');
+                          + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${doseMap.dfo} mg/kg روزانه)</span><span class="combo-days"><strong>${doseMap.dfoDays} روز در هفته</strong></span></div>`;
+            addWarning('<strong>🚨 خطر! درمان سه‌دارویی 🚨</strong><br>این پروتکل بسیار پرخطر بوده و فقط در شرایط بحرانی (مثل نارسایی قلبی)، در ICU و با نظارت لحظه‌ای تیم فوق تخصصی استفاده می‌شود. این بخش صرفاً جهت آگاهی از پیچیدگی درمان است.', 'danger');
             monitoring.add('CBC هفتگی').add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
         
         } else {
@@ -249,14 +269,48 @@ document.addEventListener('DOMContentLoaded', () => {
         if(monitoring.size > 0) addWarning(`<strong>پایش‌های لازم:</strong> ${[...monitoring].join('، ')}`, 'warning');
     };
 
-    // --- UPDATED: findTabletCombination for DFX to prioritize largest tablet size (e.g., 360mg) ---
+    // --- REVISED: findTabletCombination for DFX (Minimizing Variety) ---
     const findTabletCombination = (targetDose, tablets, unit) => {
-        // Round target dose to the nearest unit (e.g., nearest 90mg for Jadenu)
-        const roundedDose = Math.round(targetDose / unit) * unit; 
-        let rem = roundedDose; 
-        let comb = [];
+        
+        const largestTablet = tablets[0]; // e.g., 360 or 500
+        
+        // Option B: Clinically safe dose (rounded to nearest unit)
+        const doseB = Math.round(targetDose / unit) * unit;
+        
+        // Option A: Round to nearest multiple of the largest tablet (for cleaner prescription, e.g., multiples of 360)
+        const numLargest = Math.round(targetDose / largestTablet);
+        const doseA = numLargest * largestTablet;
+        
+        // Decision: If Dose A is within 1 unit (e.g., 90mg) of the clinically safe Dose B, use Dose A for cleaner prescription.
+        const diff = Math.abs(doseA - doseB);
+        
+        let finalDose;
+        let suggestion = '';
 
-        // Iterate through tablet sizes from largest to smallest
+        if (numLargest >= 1 && diff <= unit) { 
+            // If we can get a clean number of the largest tablet size that's close enough, use it
+            finalDose = doseA;
+            if (doseA !== doseB) {
+                 suggestion = `<strong>تعدیل دوز:</strong> دوز محاسبه شده از ${doseB} به ${finalDose} میلی‌گرم رند شد تا مصرف قرص‌ها (به صورت ${numLargest} عدد قرص ${largestTablet} میلی‌گرم) ساده‌تر باشد.`;
+            }
+        } else {
+            // Otherwise, stick to the clinically safer, unit-rounded dose
+            finalDose = doseB;
+            
+            // Check if Dose B requires variety (more than one tablet size or more than one tablet total)
+            let remCheck = finalDose;
+            let largestCount = Math.floor(remCheck / largestTablet);
+            remCheck -= largestCount * largestTablet;
+            
+            if (remCheck > 0 && finalDose > largestTablet) {
+                suggestion = `<strong>سادگی مصرف:</strong> دوز نهایی ${finalDose} میلی‌گرم است که با ترکیب چند قرص حاصل شده است. با مشورت پزشک، می‌توانید دوز را به نزدیک‌ترین مضرب ${largestTablet} میلی‌گرم تغییر دهید.`;
+            }
+        }
+
+        let rem = finalDose; 
+        let comb = [];
+        
+        // Now find the combination for the FINAL_DOSE (prioritizing large tablets)
         tablets.sort((a, b) => b - a).forEach(s => { 
             const count = Math.floor(rem / s); 
             if (count > 0) { 
@@ -265,7 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
         });
 
-        return { totalDose: roundedDose, combination: comb.join(' + ') || 'دوز بسیار پایین است' };
+
+        return { totalDose: finalDose, combination: comb.join(' + ') || 'دوز بسیار پایین است', suggestion: suggestion };
     };
 
     const addWarning = (message, type) => { const p = document.createElement('p'); p.className = type; p.innerHTML = message; warningMessages.appendChild(p); };
@@ -294,7 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            // Assuming sw.js is at the root or relative path is correct
             navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW registered!'), err => console.log('SW registration failed: ', err));
         });
     }
