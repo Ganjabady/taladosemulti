@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تالادوز | دستیار هوشمند تالاسمی</title>
+    <meta name="description" content="محاسبه‌گر هوشمند، آفلاین و قابل نصب دوز داروهای آهن‌زدای تالاسمی با بازخورد هوشمند فریتین.">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Ganjabady/TalaDose1/refs/heads/main/taladoseicon250.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#14b8a6">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo-wrapper">
+                <img src="https://raw.githubusercontent.com/Ganjabady/TalaDose1/refs/heads/main/taladoseicon250.png" alt="لوگو تالادوز" class="logo-icon">
+                <h1 class="logo">تالادوز</h1>
+            </div>
+            <div class="theme-switcher">
+                <input type="checkbox" id="dark-mode-toggle" class="dark-mode-toggle">
+                <label for="dark-mode-toggle" class="dark-mode-label">
+                    <!-- SVG Icons for theme switcher -->
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <p id="motivational-quote" class="motivational-quote"></p>
+
+        <section id="calculator" class="card">
+            <div class="form-group">
+                <label for="weight">۱. وزن (کیلوگرم)</label>
+                <input type="number" id="weight" placeholder="مثلاً: 65" min="3">
+            </div>
+             <div class="form-group">
+                <label for="ferritin">۲. سطح فریتین (ng/mL)</label>
+                <input type="number" id="ferritin" placeholder="مثلاً: 1800" min="0">
+            </div>
+            <div class="form-group">
+                <label>۳. نوع تالاسمی</label>
+                <div class="radio-group">
+                    <input type="radio" id="tdt" name="thalassemia_type" value="tdt" checked>
+                    <label for="tdt">ماژور (وابسته به تزریق)</label>
+                    <input type="radio" id="ntdt" name="thalassemia_type" value="ntdt">
+                    <label for="ntdt">اینترمدیا (غیروابسته)</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>۴. داروی مصرفی</label>
+                <div class="drug-tabs">
+                    <button class="tab-button active" data-drug="deferoxamine">دفروکسامین</button>
+                    <button class="tab-button" data-drug="deferasirox">دفراسیروکس</button>
+                    <button class="tab-button" data-drug="deferiprone">دفریپرون</button>
+                </div>
+            </div>
+             <div class="form-group" id="deferoxamine-brand-group">
+                <label for="deferoxamine-brand">نوع ویال دفروکسامین</label>
+                <select id="deferoxamine-brand">
+                    <option value="500">ویال 500 میلی‌گرم</option>
+                    <option value="2000">ویال 2 گرم</option>
+                </select>
+            </div>
+        </section>
+        
+        <div id="ferritin-feedback" class="ferritin-feedback hidden"></div>
+
+        <section id="result-section" class="result-section hidden">
+            <div id="result-box" class="result-box">
+                <h2 class="result-title">دوز پیشنهادی روزانه</h2>
+                <p id="dose-text" class="dose-text"></p>
+                <p id="dose-per-kg-text" class="dose-per-kg-text"></p>
+                <p id="dose-details" class="dose-details"></p>
+            </div>
+            <div id="suggestion-box" class="suggestion-box hidden">
+                <p id="suggestion-text"></p>
+            </div>
+            <div id="warning-messages" class="warning-messages"></div>
+            <p class="final-disclaimer"><strong>توجه:</strong> این ابزار یک راهنمای اولیه است و هرگز جایگزین دستور پزشک معالج شما نمی‌شود.</p>
+        </section>
+        
+        <section class="card">
+            <details>
+                <summary class="faq-title" style="margin-bottom: 0; cursor: pointer;">مشاهده لیست داروها، برندها و دوزها</summary>
+                <div style="overflow-x: auto; margin-top: 1.5rem;">
+                    <!-- Drug Table from previous response -->
+                </div>
+            </details>
+        </section>
+        
+        <section id="faq" class="card">
+            <h2 class="faq-title">سوالات متداول (FAQ)</h2>
+            <div class="faq-container">
+                 <!-- FAQ items from previous response -->
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="faq-title">منابع و مآخذ (۲۰۲۵)</h2>
+            <div class="references">
+                <p>منطق محاسبات و هشدارهای این برنامه بر اساس آخرین راهنماهای بالینی و مقالات منتشر شده از معتبرترین مراجع علمی جهان در زمینه تالاسمی استوار است:</p>
+                <ul>
+                    <li>National Institutes of Health (NIH)</li>
+                    <li>American Society of Hematology (ASH)</li>
+                    <li>Thalassaemia International Federation (TIF)</li>
+                    <li>The Lancet Haematology</li>
+                    <li>StatPearls</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>طراحی و توسعه با عشق برای قهرمانان تالاسمی ایران | <strong>حسین حوت گنج آبادی</strong></p>
+            <a href="https://wa.me/989031375909" target="_blank" class="whatsapp-button">
+                 <!-- Whatsapp Icon SVG -->
+                <span>ارسال پیشنهاد و نظر</span>
+            </a>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

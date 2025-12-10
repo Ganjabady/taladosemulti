@@ -1,0 +1,21 @@
+{
+  "name": "تالادوز | محاسبه‌گر دوز داروهای آهنزدای تالاسمی",
+  "short_name": "تالادوز",
+  "description": "محاسبه‌گر هوشمند و آفلاین دوز داروهای آهن‌زدای بیماران تالاسمی",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f0fdfa",
+  "theme_color": "#14b8a6",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/Ganjabady/TalaDose1/refs/heads/main/taladoseicon250.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/Ganjabady/TalaDose1/refs/heads/main/taladoseicon250.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
