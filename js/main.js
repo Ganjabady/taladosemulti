@@ -275,3 +275,35 @@ document.addEventListener('DOMContentLoaded', () => {
     deferoxamineBrandGroup.style.display = 'block';
     calculateAndDisplay();
 });
+// یک تابع جدید در js/main.js
+function calculateCombinationTherapy(weight, ferritin) {
+    const selectedDrugs = Array.from(document.querySelectorAll('input[name="combo_drug"]:checked')).map(el => el.value);
+
+    // هوشمندترین و رایج‌ترین حالت: دفروکسامین + دفراسیروکس
+    if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferasirox')) {
+        
+        // یک پروتکل رایج به عنوان "نقطه شروع پیشنهادی"
+        const deferoxamineDose = Math.round(weight * 40);
+        const deferasiroxDose = Math.round(weight * 21);
+
+        // بازطراحی کامل بخش نتیجه
+        doseText.textContent = "پروتکل ترکیبی پیشنهادی";
+        dosePerKgText.textContent = `(برای فریتین بالا و مقاوم به درمان)`;
+        doseDetails.innerHTML = `
+            <div class="combo-result">
+                <span><strong>دفروکسامین:</strong> ${deferoxamineDose} میلی‌گرم</span>
+                <span class="combo-days">۲ تا ۳ روز در هفته</span>
+            </div>
+            <div class="combo-result">
+                <span><strong>دفراسیروکس:</strong> ${deferasiroxDose} میلی‌گرم</span>
+                <span class="combo-days">در روزهای دیگر (۴ تا ۵ روز در هفته)</span>
+            </div>
+        `;
+        
+        addWarning('<strong>خطر بسیار مهم:</strong> درمان ترکیبی ریسک عوارض کلیوی و کبدی را افزایش می‌دهد و **فقط و فقط** باید تحت نظارت دقیق پزشک متخصص انجام شود. این بخش صرفاً جهت آشنایی است.', 'danger');
+    } else {
+        doseText.textContent = "پروتکل نامشخص";
+        dosePerKgText.textContent = "";
+        doseDetails.textContent = "لطفاً دو داروی مورد نظر خود را برای درمان ترکیبی انتخاب کنید (رایج‌ترین ترکیب: دفروکسامین + دفراسیروکس).";
+    }
+}
