@@ -161,6 +161,7 @@ input[type="number"]:focus, select:focus {
 .dose-text { font-size: 2.75rem; font-weight: 800; line-height: 1.2; letter-spacing: -1px; }
 .dose-per-kg-text { font-size: 0.9rem; opacity: 0.7; margin-top: -0.5rem; margin-bottom: 0.5rem; }
 .dose-details { font-size: 1.1rem; font-weight: 500; opacity: 0.9; margin-top: 0.5rem;}
+
 .combo-result { display: flex; flex-direction: column; gap: 0.5rem; text-align: center; padding: 0.75rem 0; border-bottom: 1px solid color-mix(in srgb, var(--c-white) 20%, transparent); }
 .combo-result:last-child { border-bottom: none; }
 .combo-result .combo-days { font-size: 0.9rem; background-color: color-mix(in srgb, var(--c-white) 15%, transparent); padding: 0.2rem 0.6rem; border-radius: 0.5rem; align-self: center; }
