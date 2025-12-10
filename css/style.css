@@ -10,7 +10,7 @@
     --c-text-secondary: #6b7280; /* gray-500 */
     --c-bg: #f0fdfa; /* teal-50 */
     --c-card: #ffffff;
-    --c-border: #cbd5e1; /* slate-300 */
+    --c-border: #e2e8f0; /* slate-300 */
     --c-white: #ffffff;
     --c-success: #10b981; /* green-500 */
     --c-danger: #f43f5e; /* rose-500 */
@@ -28,7 +28,7 @@
     --c-text-secondary: #94a3b8; /* slate-400 */
     --c-bg: #0f172a; /* slate-900 */
     --c-card: #1e293b; /* slate-800 */
-    --c-border: #334155; /* slate-700 */
+    --c-border: #475569; /* slate-600 */
     --c-success: #34d399; /* green-400 */
     --c-danger: #fb7185; /* rose-400 */
     --c-warning: #fb923c; /* orange-400 */
@@ -101,11 +101,11 @@ input[type="number"]:focus, select:focus {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-primary) 20%, transparent);
 }
 
-/* --- TABS & RADIO BUTTONS --- */
-.radio-group, .drug-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-.drug-tabs { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
-.radio-group input { display: none; }
-.radio-group label, .tab-button {
+/* --- TABS & RADIO & CHECKBOXES --- */
+.radio-group, .drug-tabs, .combo-checkboxes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.drug-tabs, .combo-checkboxes { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
+.radio-group input, .combo-checkboxes input { display: none; }
+.radio-group label, .tab-button, .combo-checkboxes label {
     text-align: center;
     padding: 0.8rem 1rem;
     border-radius: 0.5rem;
@@ -116,18 +116,19 @@ input[type="number"]:focus, select:focus {
     background-color: var(--c-card);
     transition: all 0.2s ease-out;
 }
-.radio-group label:hover, .tab-button:hover { border-color: var(--c-primary); color: var(--c-primary); }
-.radio-group input:checked + label, .tab-button.active {
+.radio-group label:hover, .tab-button:hover, .combo-checkboxes label:hover { border-color: var(--c-primary); color: var(--c-primary); }
+.radio-group input:checked + label, .tab-button.active, .combo-checkboxes input:checked + label {
     background-color: var(--c-primary);
     color: var(--c-white);
     border-color: var(--c-primary);
     box-shadow: 0 2px 5px color-mix(in srgb, var(--c-primary) 30%, transparent);
 }
 .tab-button { font-family: var(--font-family); font-size: 1rem; width: 100%; }
+.combo-note { font-size: 0.85rem; color: var(--c-text-secondary); text-align: center; margin-top: 1rem; }
 
 /* --- RESULT & FEEDBACK SECTION --- */
 .result-section, .ferritin-feedback {
-    animation: fadeIn 0.4s ease-out, slideUp 0.4s ease-out;
+    animation: fadeIn 0.4s ease-out;
     margin-bottom: 1.5rem;
 }
 .final-disclaimer {
@@ -157,9 +158,12 @@ input[type="number"]:focus, select:focus {
     transform: rotate(-20deg);
 }
 .result-title { font-size: 1rem; font-weight: 500; color: var(--c-white); opacity: 0.8; margin-bottom: 0.5rem; }
-.dose-text { font-size: 3.5rem; font-weight: 800; line-height: 1.2; letter-spacing: -1px; }
+.dose-text { font-size: 2.75rem; font-weight: 800; line-height: 1.2; letter-spacing: -1px; }
 .dose-per-kg-text { font-size: 0.9rem; opacity: 0.7; margin-top: -0.5rem; margin-bottom: 0.5rem; }
-.dose-details { font-size: 1.2rem; font-weight: 500; opacity: 0.9; }
+.dose-details { font-size: 1.1rem; font-weight: 500; opacity: 0.9; margin-top: 0.5rem;}
+.combo-result { display: flex; flex-direction: column; gap: 0.5rem; text-align: center; padding: 0.75rem 0; border-bottom: 1px solid color-mix(in srgb, var(--c-white) 20%, transparent); }
+.combo-result:last-child { border-bottom: none; }
+.combo-result .combo-days { font-size: 0.9rem; background-color: color-mix(in srgb, var(--c-white) 15%, transparent); padding: 0.2rem 0.6rem; border-radius: 0.5rem; align-self: center; }
 
 /* --- WARNINGS & SUGGESTIONS & FERRITIN FEEDBACK --- */
 .suggestion-box, .warning-messages .warning, .warning-messages .danger, .warning-messages .info, .ferritin-feedback {
@@ -196,115 +200,29 @@ summary::before {
 details[open] summary::before { transform: translateY(-50%) rotate(90deg); }
 details p { margin-top: 0.75rem; padding-right: 2rem; color: var(--c-text-secondary); }
 
-.drug-table {
-    width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem;
-}
-.drug-table th, .drug-table td {
-    border: 1px solid var(--c-border); padding: 0.75rem; text-align: right; vertical-align: middle;
-}
+.drug-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+.drug-table th, .drug-table td { border: 1px solid var(--c-border); padding: 0.75rem; text-align: right; vertical-align: middle; }
 .drug-table th { background-color: var(--c-bg); font-weight: 600; }
 .drug-table tbody tr:hover { background-color: color-mix(in srgb, var(--c-primary) 5%, transparent); }
 .drug-table .drug-main-name { font-weight: bold; background-color: var(--c-bg); }
 
-.references {
-    text-align: center;
-    color: var(--c-text-secondary);
-    font-size: 0.9rem;
-}
-.references ul {
-    list-style: none;
-    padding: 0;
-    margin: 1rem 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem 1.5rem;
-}
-.references ul li {
-    font-weight: 500;
-    color: var(--c-text-primary);
-    background-color: var(--c-bg);
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--c-border);
-}
+.references { text-align: center; color: var(--c-text-secondary); font-size: 0.9rem; padding-top: 1rem; }
+.references ul { list-style: none; padding: 0; margin: 1rem 0 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1.5rem; }
+.references ul li { font-weight: 500; color: var(--c-text-primary); background-color: var(--c-bg); padding: 0.25rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--c-border); }
 
 /* --- FOOTER --- */
-.footer {
-    text-align: center; padding: 2rem 0; margin-top: 2rem;
-    border-top: 1px solid var(--c-border); color: var(--c-text-secondary);
-}
+.footer { text-align: center; padding: 2rem 0; margin-top: 2rem; border-top: 1px solid var(--c-border); color: var(--c-text-secondary); }
 .footer p { margin-bottom: 1rem; font-weight: 500; }
-.whatsapp-button {
-    background-color: #25d366; color: white; padding: 0.7rem 1.4rem; border-radius: 50px;
-    text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;
-    transition: all 0.2s ease-out;
-}
+.whatsapp-button { background-color: #25d366; color: white; padding: 0.7rem 1.4rem; border-radius: 50px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease-out; }
 .whatsapp-button:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2); }
 .whatsapp-button svg { width: 1.1rem; height: 1.1rem; }
 
 /* --- Theme Switcher --- */
-.dark-mode-label {
-    width: 50px; height: 26px; background-color: var(--c-border); border-radius: 50px; cursor: pointer;
-    display: flex; align-items: center; justify-content: space-between; padding: 5px; position: relative;
-}
-.dark-mode-label::after {
-    content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px;
-    border-radius: 50%; background-color: white; transition: transform 0.3s ease;
-}
+.dark-mode-label { width: 50px; height: 26px; background-color: var(--c-border); border-radius: 50px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 5px; position: relative; }
+.dark-mode-label::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background-color: white; transition: transform 0.3s ease; }
 .dark-mode-toggle:checked + .dark-mode-label { background-color: var(--c-primary); }
 .dark-mode-toggle:checked + .dark-mode-label::after { transform: translateX(24px); }
 .dark-mode-toggle { opacity: 0; position: absolute; }
 .sun, .moon { width: 16px; height: 16px; }
 .sun { color: #f59e0b; }
 .moon { color: #f1f5f9; }
-/* به انتهای فایل style.css اضافه شود */
-.combo-checkboxes {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.75rem;
-}
-.combo-checkboxes input { display: none; }
-.combo-checkboxes label {
-    text-align: center;
-    padding: 0.8rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--c-text-secondary);
-    border: 1px solid var(--c-border);
-    background-color: var(--c-card);
-    transition: all 0.2s ease-out;
-}
-.combo-checkboxes label:hover {
-    border-color: var(--c-primary);
-    color: var(--c-primary);
-}
-.combo-checkboxes input:checked + label {
-    background-color: var(--c-primary);
-    color: var(--c-white);
-    border-color: var(--c-primary);
-    box-shadow: 0 2px 5px color-mix(in srgb, var(--c-primary) 30%, transparent);
-}
-.combo-note {
-    font-size: 0.85rem;
-    color: var(--c-text-secondary);
-    text-align: center;
-    margin-top: 1rem;
-}
-.combo-result {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--c-white) 20%, transparent);
-}
-.combo-result:last-child {
-    border-bottom: none;
-}
-.combo-result .combo-days {
-    font-size: 0.9rem;
-    background-color: color-mix(in srgb, var(--c-white) 15%, transparent);
-    padding: 0.2rem 0.6rem;
-    border-radius: 0.5rem;
-}
