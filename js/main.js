@@ -113,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const optimizedVialsCount = num2000mgOpt + num500mgOpt;
         
         let suggestion = '';
+        
+        // Suggest optimization if the preferred choice leads to more vials than the optimized choice
         if (optimizedVialsCount < totalVials) {
             let optimizedParts = [];
             if (num2000mgOpt > 0) optimizedParts.push(`${num2000mgOpt} ویال ۲ گرم`);
@@ -120,7 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             suggestion = `<strong>پیشنهاد صرفه‌جویی:</strong> برای کاهش تعداد ویال‌های مصرفی و راحتی بیشتر، می‌توانید از ترکیب ${optimizedParts.join(' + ')} استفاده کنید.`;
         } else if (preferredVial === '500mg' && roundedDose >= 2000) {
-             suggestion = `<strong>توجه:</strong> اگر ویال ۲ گرمی در دسترس است، برای راحتی بیشتر می‌توانید به جای ۴ ویال ۵۰۰ میلی‌گرمی، از ۱ ویال ۲ گرمی استفاده کنید.`;
+             // If user chose 500mg but dose is high, remind them of 2g option
+             suggestion = `<strong>توجه:</strong> اگر دوز بالاست، برای راحتی بیشتر می‌توانید از ویال‌های ۲ گرمی استفاده کنید.`;
         }
         
         return { mainText: `معادل ${mainPresentation}`, suggestion: suggestion, totalVials: totalVials };
