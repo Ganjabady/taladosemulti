@@ -1,7 +1,7 @@
 /* --- GLOBAL STYLES & VARIABLES --- */
 :root {
     --font-family: 'Vazirmatn', sans-serif;
-    
+
     /* Light Theme Palette (Teal) */
     --c-primary: #14b8a6; /* teal-500 */
     --c-primary-dark: #0f766e; /* teal-700 */
