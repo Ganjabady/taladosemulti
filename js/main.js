@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return doseMap.mid;
     };
 
-    // --- REVISED: DFO Helper function to prioritize user's choice (500mg or 2000mg) and suggest optimized combination ---
+    // --- DFO Helper function to prioritize user's choice (500mg or 2000mg) and suggest optimized combination ---
     const getVialText = (totalDose, preferredVial) => {
         if (totalDose <= 0) return { mainText: 'دوز بسیار پایین است', suggestion: '' };
         
@@ -222,7 +222,24 @@ document.addEventListener('DOMContentLoaded', () => {
         let monitoring = new Set();
         let htmlDetails = '';
 
-        if (selectedDrugs.includes('deferiprone') && selectedDrugs.includes('deferasirox')) {
+        // *** FIX: Priority 1: Triple Therapy (length === 3) ***
+        if (selectedDrugs.length === 3) {
+            // Triple Therapy (Emergency only)
+            const doseMap = ferritin > 5000 ? { dfp: 80, dfx: 20, dfo: 50, dfoDays: 5 } : { dfp: 70, dfx: 15, dfo: 40, dfoDays: 4 };
+            
+            const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
+            const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90);
+            const dfoTotalInjectionDose = Math.round((weight * doseMap.dfo * 7 / doseMap.dfoDays) / 500) * 500;
+            const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500mg'); // 500mg priority for combo
+
+            htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTotal/500} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
+                          + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز (یک نوبت)</span></div>`
+                          + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${doseMap.dfo} mg/kg روزانه)</span><span class="combo-days"><strong>${doseMap.dfoDays} روز در هفته</strong></span></div>`;
+            addWarning('<strong>🚨 خطر! درمان سه‌دارویی 🚨</strong><br>این پروتکل بسیار پرخطر بوده و فقط در شرایط بحرانی (مثل نارسایی قلبی)، در ICU و با نظارت لحظه‌ای تیم فوق تخصصی استفاده می‌شود. این بخش صرفاً جهت آگاهی از پیچیدگی درمان است.', 'danger');
+            monitoring.add('CBC هفتگی').add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
+        
+        // *** Priority 2: Double Therapy (Check specific pairs) ***
+        } else if (selectedDrugs.includes('deferiprone') && selectedDrugs.includes('deferasirox')) {
              const doseMap = ferritin > 5000 ? { dfp: 90, dfx: 28 } : { dfp: 75, dfx: 24 };
              const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
              const dfpTablets = dfpTotal / 500;
@@ -231,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
              htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
                           + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز (یک نوبت)</span></div>`;
              monitoring.add('CBC هفتگی').add('کراتینین/کبد ماهانه');
-             addWarning('<strong>توجه:</strong> این پروتکل فقط خوراکی است و باید تحت نظارت دقیق پزشک انجام شود.', 'danger');
+             // FIX: Removed "این پروتکل فقط خوراکی است" as a warning, added as a suggestion if needed.
+             // addWarning('<strong>توجه:</strong> این پروتکل فقط خوراکی است و باید تحت نظارت دقیق پزشک انجام شود.', 'danger');
 
 
         } else if (selectedDrugs.includes('deferiprone') && selectedDrugs.includes('deferoxamine')) {
@@ -267,21 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
                          + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span></span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
             monitoring.add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
             addWarning('<strong>تذکر:</strong> بهتر است دفرازیروکس و دفروکسامین در **روزهای متفاوت** مصرف شوند تا ریسک عوارض کلیوی کاهش یابد.', 'warning');
-        
-        } else if (selectedDrugs.length === 3) {
-            // Triple Therapy (Emergency only)
-            const doseMap = ferritin > 5000 ? { dfp: 80, dfx: 20, dfo: 50, dfoDays: 5 } : { dfp: 70, dfx: 15, dfo: 40, dfoDays: 4 };
-            
-            const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
-            const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90);
-            const dfoTotalInjectionDose = Math.round((weight * doseMap.dfo * 7 / doseMap.dfoDays) / 500) * 500;
-            const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500mg');
-
-            htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTotal/500} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
-                          + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز (یک نوبت)</span></div>`
-                          + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${doseMap.dfo} mg/kg روزانه)</span><span class="combo-days"><strong>${doseMap.dfoDays} روز در هفته</strong></span></div>`;
-            addWarning('<strong>🚨 خطر! درمان سه‌دارویی 🚨</strong><br>این پروتکل بسیار پرخطر بوده و فقط در شرایط بحرانی (مثل نارسایی قلبی)، در ICU و با نظارت لحظه‌ای تیم فوق تخصصی استفاده می‌شود. این بخش صرفاً جهت آگاهی از پیچیدگی درمان است.', 'danger');
-            monitoring.add('CBC هفتگی').add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
         
         } else {
              htmlDetails = `<span>پروتکل ترکیبی برای این دو دارو استاندارد نیست. لطفاً با پزشک متخصص مشورت کنید.</span>`;
