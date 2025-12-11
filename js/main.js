@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- FIX: DFO Helper function to prioritize user's choice (500mg or 2000mg) and suggest optimized combination ---
+    // preferredVial is now '500' or '2000' (string)
     const getVialText = (totalDose, preferredVial) => {
         if (totalDose <= 0) return { mainText: 'دوز بسیار پایین است', suggestion: '' };
         
@@ -86,7 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let mainPresentation = '';
         let totalVials;
 
-        if (preferredVial === '2000mg') {
+        // Use '2000' for comparison
+        if (preferredVial === '2000') { 
             // Priority on 2000mg vials (to minimize number of vials)
             let rem = roundedDose;
             const num2000mg = Math.floor(rem / 2000);
@@ -99,7 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
             mainPresentation = parts.join(' + ');
             totalVials = num2000mg + num500mg;
 
-        } else if (preferredVial === '500mg') {
+        // Use '500' for comparison
+        } else if (preferredVial === '500') { 
             // Priority on 500mg vials
             totalVials = Math.ceil(roundedDose / 500);
             mainPresentation = `${totalVials} ویال ۵۰۰ میلی‌گرم`;
@@ -116,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
              totalVials = num2000mgOpt + num500mgOpt;
         }
 
-        // 2. Calculate the fully optimized (least number of vials) combination for the suggestion (Always the DFO optimized logic)
+        // 2. Calculate the fully optimized (least number of vials) combination for the suggestion 
         let remOpt = roundedDose;
         const num2000mgOpt = Math.floor(remOpt / 2000);
         remOpt %= 2000;
@@ -132,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (num500mgOpt > 0) optimizedParts.push(`${num500mgOpt} ویال ۵۰۰ میلی‌گرم`);
             
             suggestion = `<strong>پیشنهاد صرفه‌جویی:</strong> برای کاهش تعداد ویال‌های مصرفی و راحتی بیشتر، می‌توانید از ترکیب ${optimizedParts.join(' + ')} استفاده کنید.`;
-        } else if (preferredVial === '500mg' && roundedDose >= 2000) {
+        } else if (preferredVial === '500' && roundedDose >= 2000) {
              // If user chose 500mg but dose is high, remind them of 2g option
              suggestion = `<strong>توجه:</strong> اگر دوز بالاست، برای راحتی بیشتر می‌توانید از ویال‌های ۲ گرمی استفاده کنید.`;
         }
@@ -144,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let dosePerKg = getDosePerKg(ferritin, { low: 30, mid: 42, high: 55 });
         dosePerKg = Math.min(dosePerKg, 60); // Max Dose Cap
         
-        // Ensure preferredVial is retrieved correctly (e.g., '500mg' or '2000mg')
+        // Ensure preferredVial is retrieved correctly (e.g., '500' or '2000')
         const preferredVial = deferoxamineBrandSelect.value;
         
         // Intelligent Rounding for DFO (Round to nearest 500mg for practicality)
@@ -181,8 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
             maxDose = 28;
             tabletSizes = [360, 180, 90];
             doseUnit = 90; 
-        } else if (dfxType === 'exjade_asoral') { // EXJADE/ASORAL (500, 250, 125) - Dissolvable (Exjade/Asoral)
-             dosePerKg = getDosePerKg(ferritin, { low: 15, mid: 20, high: 35 });
+        // Use 'exjade' for comparison, as per user's HTML
+        } else if (dfxType === 'exjade') { // EXJADE/ASORAL (500, 250, 125) - Dissolvable (Exjade/Asoral)
+             // Initial dose: 20 mg/kg, Max: 40 mg/kg (Used for mid range)
+             dosePerKg = getDosePerKg(ferritin, { low: 15, mid: 20, high: 35 }); 
              maxDose = 40;
              tabletSizes = [500, 250, 125];
              doseUnit = 125; 
@@ -242,15 +247,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let monitoring = new Set();
         let htmlDetails = '';
 
-        // *** FIX: Priority 1: Triple Therapy (length === 3) ***
+        // Priority 1: Triple Therapy (Emergency only)
         if (selectedDrugs.length === 3) {
-            // Triple Therapy (Emergency only)
             const doseMap = ferritin > 5000 ? { dfp: 80, dfx: 20, dfo: 50, dfoDays: 5 } : { dfp: 70, dfx: 15, dfo: 40, dfoDays: 4 };
             
             const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
-            const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90);
-            const dfoTotalInjectionDose = Math.round((weight * doseMap.dfo * 7 / doseMap.dfoDays) / 500) * 500;
-            const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500mg'); 
+            const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90); // Assumes Jadenu/Coated in combo
+            // Daily equivalent dose (DFO kg * 7 days / DFO days per week)
+            const dfoTotalInjectionDose = Math.round((weight * doseMap.dfo * 7 / doseMap.dfoDays) / 500) * 500; 
+            const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500'); // Use 500mg vial for combo calc simplicity
 
             htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTotal/500} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
                           + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز (یک نوبت)</span></div>`
@@ -258,12 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
             addWarning('<strong>🚨 خطر! درمان سه‌دارویی 🚨</strong><br>این پروتکل بسیار پرخطر بوده و فقط در شرایط بحرانی (مثل نارسایی قلبی)، در ICU و با نظارت لحظه‌ای تیم فوق تخصصی استفاده می‌شود. این بخش صرفاً جهت آگاهی از پیچیدگی درمان است.', 'danger');
             monitoring.add('CBC هفتگی').add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
         
-        // *** Priority 2: Double Therapy (Check specific pairs) ***
+        // Priority 2: Double Therapy (Check specific pairs)
         } else if (selectedDrugs.includes('deferiprone') && selectedDrugs.includes('deferasirox')) {
              const doseMap = ferritin > 5000 ? { dfp: 90, dfx: 28 } : { dfp: 75, dfx: 24 };
              const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
              const dfpTablets = dfpTotal / 500;
-             const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90);
+             const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90); // Assumes Jadenu/Coated in combo
 
              htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
                           + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز (یک نوبت)</span></div>`;
@@ -281,23 +286,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const dfpTablets = dfpTotal / 500;
             
             const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500;
-            const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500mg'); 
+            const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500'); // Use 500mg vial for combo calc simplicity
             
             htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${dfpKg} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
                          + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
             monitoring.add('CBC هفتگی').add('شنوایی/بینایی سالانه');
 
-        } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferasirox')) {
+        } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.included('deferasirox')) {
             const dfoDays = ferritin > 4000 ? 4 : ferritin > 2500 ? 3 : 2; 
             const baseDosePerDay = ferritin > 5000 ? 50 : ferritin > 2500 ? 45 : 40; 
             
             const dfxKg = Math.min(25, baseDosePerDay - 15); 
             const dfoKgEquivalent = baseDosePerDay - dfxKg; 
             
-            const dfxResult = findTabletCombination(weight * dfxKg, [360, 180, 90], 90);
+            const dfxResult = findTabletCombination(weight * dfxKg, [360, 180, 90], 90); // Assumes Jadenu/Coated in combo
             
             const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500; 
-            const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500mg');
+            const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500'); // Use 500mg vial for combo calc simplicity
 
             htmlDetails += `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${dfxKg.toFixed(0)} mg/kg)</span><span class="combo-days"><strong>در روزهای بدون تزریق</strong></span></div>`
                          + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span></span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
@@ -374,27 +379,40 @@ document.addEventListener('DOMContentLoaded', () => {
         isComboMode = e.target.value === 'combo';
         monoTherapyControls.classList.toggle('hidden', isComboMode);
         comboTherapyControls.classList.toggle('hidden', !isComboMode);
+
+        // When switching to mono-therapy, ensure the correct mono-therapy dropdown is displayed
+        if (!isComboMode) {
+             // Reset: Hide both optional dropdowns first
+            deferoxamineBrandGroup.classList.add('hidden');
+            deferasiroxTypeGroup.classList.add('hidden');
+
+            // Show the currently selected drug's dropdown
+            if (currentDrug === 'deferoxamine') {
+                deferoxamineBrandGroup.classList.remove('hidden');
+            } else if (currentDrug === 'deferasirox') {
+                deferasiroxTypeGroup.classList.remove('hidden');
+            }
+        }
+        
         calculateAndDisplay();
     }));
 
-drugTabs.forEach(tab => tab.addEventListener('click', () => {
+    // --- FIX: Logic for showing/hiding dropdowns on tab switch ---
+    drugTabs.forEach(tab => tab.addEventListener('click', () => {
         currentDrug = tab.dataset.drug;
         drugTabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         
-        // --- NEW/FIXED LOGIC ---
-        // 1. Reset all drug-specific menus to hidden (or none)
-        deferoxamineBrandGroup.style.display = 'none';
-        deferasiroxTypeGroup.style.display = 'none';
+        // 1. Reset: Hide both optional dropdowns first (using the 'hidden' class)
+        deferoxamineBrandGroup.classList.add('hidden');
+        deferasiroxTypeGroup.classList.add('hidden');
         
-        // 2. Display only the relevant menu for the selected drug (in mono-therapy mode)
+        // 2. Show the relevant one by removing the 'hidden' class
         if (currentDrug === 'deferoxamine') {
-            deferoxamineBrandGroup.style.display = 'block';
+            deferoxamineBrandGroup.classList.remove('hidden');
         } else if (currentDrug === 'deferasirox') {
-            deferasiroxTypeGroup.style.display = 'block';
+            deferasiroxTypeGroup.classList.remove('hidden');
         }
-        // Deferiprone currently has no specific extra menu, so nothing to display here.
-        // --- END OF NEW/FIXED LOGIC ---
         
         calculateAndDisplay();
     }));
@@ -414,5 +432,8 @@ drugTabs.forEach(tab => tab.addEventListener('click', () => {
     // --- Initial Setup ---
     applyTheme(localStorage.getItem('theme') || 'light');
     showRandomQuote();
+    // Ensure initial state reflects the active tab (deferoxamine)
+    deferasiroxTypeGroup.classList.add('hidden'); // Ensure DFX is hidden on load
+    deferoxamineBrandGroup.classList.remove('hidden'); // Ensure DFO is shown on load
     calculateAndDisplay();
 });
