@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ferritinInput = document.getElementById('ferritin');
     const drugTabs = document.querySelectorAll('.tab-button');
     // REMOVED: deferoxamineBrandSelect as per user request
-    const deferoxamineBrandGroup = document.getElementById('deferoxamine-brand-group'); // Kept for showing/hiding logic if present
+    const deferoxamineBrandGroup = document.getElementById('deferoxamine-brand-group'); 
     const deferasiroxTypeGroup = document.getElementById('deferasirox-type-group');
     const deferasiroxTypeSelect = document.getElementById('deferasirox-type');
     const ferritinFeedback = document.getElementById('ferritin-feedback');
@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DFO Helpers ---
 
     // Helper 1: Calculates the most efficient combination (max 2g, then 500mg)
+    // NOTE: This helper is now only used for combo calculation and for providing a comparison in the suggestion text.
     const getOptimizedVialCombination = (totalDose) => {
         let rem = totalDose;
         const num2000mg = Math.floor(rem / 2000);
@@ -101,25 +102,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetDose = weight * dosePerKg;
         const totalDose = Math.round(targetDose / 500) * 500; 
 
-        // 1. Preferred Info (Always 500mg vials only) - Used for primary display
-        const preferredInfo = {
-            combinationText: `${Math.ceil(totalDose / 500)} ویال ۵۰۰ میلی‌گرم`,
-            totalVials: Math.ceil(totalDose / 500)
-        };
+        // 1. Primary Display (Always 500mg vials only)
+        const num500mgVials = Math.ceil(totalDose / 500);
+        const preferredCombination = `${num500mgVials} ویال ۵۰۰ میلی‌گرم`;
+        const preferredVialCount = num500mgVials;
         
-        // 2. Optimized Info (Used for suggestion)
-        const optimizedInfo = getOptimizedVialCombination(totalDose);
+        // 2. Check for Single-Brand 2g Suggestion
+        let suggestion = null;
+        if (totalDose > 0 && totalDose % 2000 === 0) {
+            // If the total dose is perfectly divisible by 2000mg (2g)
+            const num2000mgVials = totalDose / 2000;
+            if (num2000mgVials < preferredVialCount) {
+                 suggestion = `<strong>پیشنهاد صرفه‌جویی:</strong> برای کاهش تعداد ویال‌های مصرفی و راحتی بیشتر، می‌توانید به‌جای ${preferredVialCount} عدد ویال ۵۰۰ میلی‌گرم، از <strong>${num2000mgVials} ویال ۲ گرم</strong> استفاده کنید.`;
+            }
+        } else {
+             // For cases like 3500mg, the only vial-saving method is mixing, which we explicitly avoid suggesting.
+             // However, for advanced users, we can suggest the possibility but warn about mixing brands.
+             const optimizedInfo = getOptimizedVialCombination(totalDose);
+             if (optimizedInfo.totalVials < preferredVialCount) {
+                  suggestion = `<strong>تذکر:</strong> اگرچه معمولاً توصیه نمی‌شود، اما برای کاهش تعداد ویال‌های مصرفی می‌توانید از ترکیب ${optimizedInfo.combinationText} استفاده کنید. در این حالت باید به تفاوت احتمالی برند ویال‌ها توجه داشته باشید.`;
+             }
+        }
+
 
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
         doseText.textContent = `${totalDose} میلی‌گرم`;
         doseDetails.innerHTML = `<div class="dose-per-kg-text">(بر اساس ${dosePerKg.toFixed(0)} میلی‌گرم بر کیلوگرم)</div>`;
 
         // 3. Set display based on the non-optimized (500mg only) method
-        doseDetails.innerHTML += `<span>معادل ${preferredInfo.combinationText}</span>`;
+        doseDetails.innerHTML += `<span>معادل ${preferredCombination}</span>`;
         
-        // 4. Handle DFO suggestion: Only suggest if optimization is possible
-        if (optimizedInfo.totalVials < preferredInfo.totalVials) {
-            suggestionText.innerHTML = `<strong>پیشنهاد صرفه‌جویی:</strong> برای کاهش تعداد ویال‌های مصرفی و راحتی بیشتر، می‌توانید از ترکیب ${optimizedInfo.combinationText} استفاده کنید.`; 
+        // 4. Handle DFO suggestion
+        if (suggestion) {
+            suggestionText.innerHTML = suggestion; 
             suggestionBox.classList.remove('hidden'); 
         } else {
              suggestionBox.classList.add('hidden'); 
@@ -213,6 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let monitoring = new Set();
         let htmlDetails = '';
 
+        // All combination therapy doses now benefit from smart rounding implemented in the helpers.
+
         // Priority 1: Triple Therapy (Emergency only)
         if (selectedDrugs.length === 3) {
             const doseMap = ferritin > 5000 ? { dfp: 80, dfx: 20, dfo: 50, dfoDays: 5 } : { dfp: 70, dfx: 15, dfo: 40, dfoDays: 4 };
@@ -264,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dfpTotal = Math.round(dfpTargetDose / 500) * 500;
             const dfpTablets = dfpTotal / 500;
             
-            // DFO: Already rounded to 500mg vial unit
+            // DFO: The optimized combination is used here for brevity and because combo therapy is already complex.
             const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500;
             const dfoVialInfo = getOptimizedVialCombination(dfoTotalInjectionDose);
             
@@ -282,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // DFX: Smart Rounding via findTabletCombination (uses 360mg unit for Jadenu combo)
             const dfxResult = findTabletCombination(weight * dfxKg, [360, 180, 90], 90, 360); 
             
-            // DFO: Already rounded to 500mg vial unit
+            // DFO: The optimized combination is used here for brevity and because combo therapy is already complex.
             const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500; 
             const dfoVialInfo = getOptimizedVialCombination(dfoTotalInjectionDose);
 
@@ -366,13 +383,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // When switching to mono-therapy, ensure the correct mono-therapy dropdown is displayed
         if (!isComboMode) {
              // Reset: Hide both optional dropdowns first
-            if (deferoxamineBrandGroup) deferoxamineBrandGroup.classList.add('hidden'); // Check added for safety
+            if (deferoxamineBrandGroup) deferoxamineBrandGroup.classList.add('hidden'); 
             deferasiroxTypeGroup.classList.add('hidden');
 
             // Show the currently selected drug's dropdown
-            if (currentDrug === 'deferoxamine') {
-                if (deferoxamineBrandGroup) deferoxamineBrandGroup.classList.remove('hidden'); // Check added for safety
-            } else if (currentDrug === 'deferasirox') {
+            if (currentDrug === 'deferasirox') {
                 deferasiroxTypeGroup.classList.remove('hidden');
             }
         }
@@ -387,14 +402,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tab.classList.add('active');
         
         // 1. Reset: Hide both optional dropdowns first (using the 'hidden' class)
-        if (deferoxamineBrandGroup) deferoxamineBrandGroup.classList.add('hidden'); // Check added for safety
+        if (deferoxamineBrandGroup) deferoxamineBrandGroup.classList.add('hidden'); 
         deferasiroxTypeGroup.classList.add('hidden');
         
         // 2. Show the relevant one by removing the 'hidden' class
-        if (currentDrug === 'deferoxamine') {
-            // Do not show the DFO group as it is removed from HTML, but keep the check if the element exists for safety
-            // if (deferoxamineBrandGroup) deferoxamineBrandGroup.classList.remove('hidden'); 
-        } else if (currentDrug === 'deferasirox') {
+        if (currentDrug === 'deferasirox') {
             deferasiroxTypeGroup.classList.remove('hidden');
         }
         
@@ -403,9 +415,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     comboCheckboxes.forEach(cb => cb.addEventListener('change', calculateAndDisplay));
     
-    // FIX: Only input fields use 'input'. Select elements use 'change' for better reliability.
+    // Listeners for inputs and select
     [weightInput, ferritinInput].forEach(el => el.addEventListener('input', calculateAndDisplay));
-    // DFO select is removed, only DFX select remains to use 'change'
     if (deferasiroxTypeSelect) deferasiroxTypeSelect.addEventListener('change', calculateAndDisplay); 
     
 
@@ -422,8 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Setup ---
     applyTheme(localStorage.getItem('theme') || 'light');
     showRandomQuote();
-    // Ensure initial state reflects the active tab (deferoxamine)
     deferasiroxTypeGroup.classList.add('hidden'); // Ensure DFX is hidden on load
-    // deferoxamineBrandGroup.classList.remove('hidden'); // Removed as the select is gone
     calculateAndDisplay();
 });
