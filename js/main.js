@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addWarning('<strong>پایش لازم:</strong> شنوایی‌سنجی و بینایی‌سنجی سالانه', 'info');
     };
 
-    // --- FIX: DFX Calculation for Coated (Jadenu) and Dissolvable (Exjade/Asoral) ---
+    // --- DFX Calculation for Coated (Jadenu) and Dissolvable (Exjade/Asoral) ---
     const calculateDeferasirox = (weight, ferritin) => {
         if (ferritin > 0 && ferritin < 300) { 
             resultMainTitle.textContent = 'دوز پیشنهادی روزانه'; doseText.textContent = "قطع موقت"; doseDetails.innerHTML = `<div class="dose-per-kg-text">(فریتین: ${ferritin})</div><span>سطح فریتین بسیار پایین است</span>`; addWarning('سطح فریتین زیر 300 است. مصرف دارو باید متوقف شود.', 'danger'); return; 
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(monitoring.size > 0) addWarning(`<strong>پایش‌های لازم:</strong> ${[...monitoring].join('، ')}`, 'warning');
     };
 
-    // --- FIX: findTabletCombination for DFX (Minimizing Variety & Smart Rounding) ---
+    // --- findTabletCombination for DFX (Minimizing Variety & Smart Rounding) ---
     const findTabletCombination = (targetDose, tablets, unit, smartRoundingUnit) => {
         
         // 1. Calculate Option B (Clinically safe dose - rounded to nearest unit)
@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let finalDose;
         let suggestion = '';
         
-        // FIX: Use targetDiff and half the smartRoundingUnit as the maximum acceptable deviation.
+        // Use targetDiff and half the smartRoundingUnit as the maximum acceptable deviation.
         if (numSmart >= 1 && targetDiff <= (smartRoundingUnit / 2)) { 
             finalDose = doseA;
             if (doseA !== doseB) {
@@ -402,14 +402,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
 
     comboCheckboxes.forEach(cb => cb.addEventListener('change', calculateAndDisplay));
-    // FIX: Ensure DFO select triggers the calculation
-    [weightInput, ferritinInput, deferoxamineBrandSelect, deferasiroxTypeSelect].forEach(el => el.addEventListener('input', calculateAndDisplay));
+    
+    // FIX: Only input fields use 'input'. Select elements use 'change' for better reliability.
+    [weightInput, ferritinInput].forEach(el => el.addEventListener('input', calculateAndDisplay));
+    [deferoxamineBrandSelect, deferasiroxTypeSelect].forEach(el => el.addEventListener('change', calculateAndDisplay)); 
+
     darkModeToggle.addEventListener('change', toggleTheme);
 
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            // FIX: Increment cache name to force update
+            // FINAL FIX: Increment cache name to force update
             navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW registered!'), err => console.log('SW registration failed: ', err));
         });
     }
