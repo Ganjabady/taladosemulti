@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doseDetails.innerHTML = `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotal} میلی‌گرم (${getVialText(dfoTotal).replace('معادل ','')})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfo} mg/kg)</span><span class="combo-days"><strong>${doseMap.dfoDays} روز در هفته</strong></span></div>`
                                   + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days"><strong>هر روز</strong></span></div>`;
             monitoring.add('کراتینین/کبد ماهانه').add('شنوایی/بینایی سالانه');
-            addWarning('<strong>تذکر زمان‌بندی:</strong> مصرف هر دو دارو در یک روز (همزمان)، به‌ویژه برای فریتین‌های بسیار بالا رایج است. اما برای کاهش ریسک عوارض کلیوی، برخی پزشکان توصیه می‌کنند دفرازیروکس را فقط در </strong>روزهای بدون تزریق<strong> مصرف کنید. حتماً در مورد بهترین زمان‌بندی با پزشک خود مشورت کنید.', 'warning');
+            addWarning('<strong>تذکر زمان‌بندی:</strong> مصرف هر دو دارو در یک روز (همزمان)، به‌ویژه برای فریتین‌های بسیار بالا رایج است. اما برای کاهش ریسک عوارض کلیوی، برخی پزشکان توصیه می‌کنند دفرازیروکس را فقط در <strong>روزهای بدون تزریق</strong> مصرف کنید. حتماً در مورد بهترین زمان‌بندی با پزشک خود مشورت کنید.', 'warning');
         } else {
              doseDetails.innerHTML = `<span>پروتکل ترکیبی برای این دو دارو استاندارد نیست. لطفاً با پزشک متخصص مشورت کنید.</span>`;
         }
