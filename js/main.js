@@ -377,20 +377,25 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateAndDisplay();
     }));
 
-    drugTabs.forEach(tab => tab.addEventListener('click', () => {
+drugTabs.forEach(tab => tab.addEventListener('click', () => {
         currentDrug = tab.dataset.drug;
         drugTabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        deferoxamineBrandGroup.style.display = (currentDrug === 'deferoxamine') ? 'block' : 'none';
-        deferasiroxTypeGroup.style.display = (currentDrug === 'deferasirox') ? 'block' : 'none';
         
-        // Ensure the dropdown is shown for DFO/DFX even if it was hidden in combo mode
+        // --- NEW/FIXED LOGIC ---
+        // 1. Reset all drug-specific menus to hidden (or none)
+        deferoxamineBrandGroup.style.display = 'none';
+        deferasiroxTypeGroup.style.display = 'none';
+        
+        // 2. Display only the relevant menu for the selected drug (in mono-therapy mode)
         if (currentDrug === 'deferoxamine') {
             deferoxamineBrandGroup.style.display = 'block';
         } else if (currentDrug === 'deferasirox') {
             deferasiroxTypeGroup.style.display = 'block';
         }
-
+        // Deferiprone currently has no specific extra menu, so nothing to display here.
+        // --- END OF NEW/FIXED LOGIC ---
+        
         calculateAndDisplay();
     }));
 
