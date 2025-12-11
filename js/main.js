@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return doseMap.mid;
     };
 
-    // --- FIX: DFO Helper function to prioritize user's choice (500mg or 2000mg) and suggest optimized combination ---
+    // --- DFO Helper function to prioritize user's choice (500mg or 2000mg) and suggest optimized combination ---
     // preferredVial is now '500' or '2000' (string)
     const getVialText = (totalDose, preferredVial) => {
         if (totalDose <= 0) return { mainText: 'دوز بسیار پایین است', suggestion: '' };
@@ -184,8 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
             maxDose = 28;
             tabletSizes = [360, 180, 90];
             doseUnit = 90; 
-        // Use 'exjade' for comparison, as per user's HTML
-        } else if (dfxType === 'exjade') { // EXJADE/ASORAL (500, 250, 125) - Dissolvable (Exjade/Asoral)
+        // 🔴🔴🔴 FIX: CHECKING FOR 'exjade_asoral' INSTEAD OF 'exjade' 🔴🔴🔴
+        } else if (dfxType === 'exjade_asoral') { // EXJADE/ASORAL (500, 250, 125) - Dissolvable (Exjade/Asoral)
              // Initial dose: 20 mg/kg, Max: 40 mg/kg (Used for mid range)
              dosePerKg = getDosePerKg(ferritin, { low: 15, mid: 20, high: 35 }); 
              maxDose = 40;
@@ -289,10 +289,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500'); // Use 500mg vial for combo calc simplicity
             
             htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${dfpKg} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
-                         + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
+                         + `<div class="combo-result"><span><strong>دفروکسامین:</strong> ${dfoTotalInjectionDose} میلی‌گرم (${dfoVialInfo.mainText.replace('معادل ','')})</span><span class="dose-per-kg-text">(دوز تزریق، معادل ${dfoKgEquivalent.toFixed(0)} mg/kg روزانه)</span></span><span class="combo-days"><strong>${dfoDays} روز در هفته</strong></span></div>`;
             monitoring.add('CBC هفتگی').add('شنوایی/بینایی سالانه');
 
-        } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.included('deferasirox')) {
+        } else if (selectedDrugs.includes('deferoxamine') && selectedDrugs.includes('deferasirox')) {
             const dfoDays = ferritin > 4000 ? 4 : ferritin > 2500 ? 3 : 2; 
             const baseDosePerDay = ferritin > 5000 ? 50 : ferritin > 2500 ? 45 : 40; 
             
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateAndDisplay();
     }));
 
-    // --- FIX: Logic for showing/hiding dropdowns on tab switch ---
+    // --- Logic for showing/hiding dropdowns on tab switch ---
     drugTabs.forEach(tab => tab.addEventListener('click', () => {
         currentDrug = tab.dataset.drug;
         drugTabs.forEach(t => t.classList.remove('active'));
