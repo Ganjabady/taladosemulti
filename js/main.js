@@ -184,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
             maxDose = 28;
             tabletSizes = [360, 180, 90];
             doseUnit = 90; 
-        // 🔴🔴🔴 FIX: CHECKING FOR 'exjade_asoral' INSTEAD OF 'exjade' 🔴🔴🔴
         } else if (dfxType === 'exjade_asoral') { // EXJADE/ASORAL (500, 250, 125) - Dissolvable (Exjade/Asoral)
              // Initial dose: 20 mg/kg, Max: 40 mg/kg (Used for mid range)
              dosePerKg = getDosePerKg(ferritin, { low: 15, mid: 20, high: 35 }); 
@@ -363,7 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tablets.sort((a, b) => b - a).forEach(s => { 
             const count = Math.floor(rem / s); 
             if (count > 0) { 
-                comb.push(`${count} عدد قرص <span dir="ltr">${s} میلی‌گرم</span>`); 
+                // 🔴 FIX: Using 'mg' and strong LTR span to ensure correct number/unit alignment
+                comb.push(`${count} عدد قرص <span dir="ltr">${s} mg</span>`); 
                 rem -= count * s; 
             } 
         });
