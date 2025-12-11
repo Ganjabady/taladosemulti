@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taladose-v12-final-fix'; // Cache version updated!
+const CACHE_NAME = 'taladose-v13-final-fix'; // Cache version updated!
 const urlsToCache = [
   '/',
   '/index.html',
