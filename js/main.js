@@ -77,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- FIX: DFO Helper function to prioritize user's choice and suggest optimized combination ---
-    // preferredVial is now '500' or '2000' (string)
     const getVialText = (totalDose, preferredVial) => {
         if (totalDose <= 0) return { mainText: 'دوز بسیار پایین است', suggestion: '' };
         
@@ -132,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let dosePerKg = getDosePerKg(ferritin, { low: 30, mid: 42, high: 55 });
         dosePerKg = Math.min(dosePerKg, 60); // Max Dose Cap
         
-        // Ensure preferredVial is retrieved correctly (e.g., '500' or '2000')
         const preferredVial = deferoxamineBrandSelect.value;
         
         // Intelligent Rounding for DFO (Round to nearest 500mg for practicality)
@@ -150,12 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (vialInfo.suggestion) {
             suggestionText.innerHTML = vialInfo.suggestion; 
             suggestionBox.classList.remove('hidden'); 
+        } else {
+             suggestionBox.classList.add('hidden'); 
         }
 
         addWarning('<strong>پایش لازم:</strong> شنوایی‌سنجی و بینایی‌سنجی سالانه', 'info');
     };
 
-    // --- FIX: DFX Calculation for Coated (Jadenu) and Dissolvable (Exjade/Asoral) ---
     const calculateDeferasirox = (weight, ferritin) => {
         if (ferritin > 0 && ferritin < 300) { 
             resultMainTitle.textContent = 'دوز پیشنهادی روزانه'; doseText.textContent = "قطع موقت"; doseDetails.innerHTML = `<div class="dose-per-kg-text">(فریتین: ${ferritin})</div><span>سطح فریتین بسیار پایین است</span>`; addWarning('سطح فریتین زیر 300 است. مصرف دارو باید متوقف شود.', 'danger'); return; 
@@ -176,8 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
              maxDose = 40;
              tabletSizes = [500, 250, 125];
              doseUnit = 125; 
-             // FIX: Smart round to nearest 500mg (largest tablet for dissolvable)
-             smartRoundingUnit = 500; 
+             smartRoundingUnit = 500; // Smart round to nearest 500mg
         } else {
              // Fallback: If no type is selected or type is unknown, default to the coated tablets (Jadenu)
              dosePerKg = getDosePerKg(ferritin, { low: 10, mid: 14, high: 24 });
@@ -202,6 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (doseResult.suggestion) {
             suggestionText.innerHTML = doseResult.suggestion; 
             suggestionBox.classList.remove('hidden'); 
+        } else {
+             suggestionBox.classList.add('hidden'); 
         }
     };
 
@@ -222,6 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (numTablets > 0) { 
             suggestionText.innerHTML = `<strong>نحوه مصرف:</strong> در ۳ نوبت در روز. مثلاً: ${Math.ceil(numTablets / 3)} قرص صبح، ${Math.floor(numTablets / 3)} قرص ظهر و ${Math.floor(numTablets / 3)} قرص شب.`; 
             suggestionBox.classList.remove('hidden'); 
+        } else {
+             suggestionBox.classList.add('hidden'); 
         }
         addWarning('<strong>پایش لازم:</strong> آزمایش هفتگی خون (CBC) برای کنترل گلبول‌های سفید', 'danger');
     };
@@ -311,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(monitoring.size > 0) addWarning(`<strong>پایش‌های لازم:</strong> ${[...monitoring].join('، ')}`, 'warning');
     };
 
-    // --- findTabletCombination for DFX (Minimizing Variety & Smart Rounding) ---
+    // --- FIX: findTabletCombination for DFX (Minimizing Variety & Smart Rounding) ---
     const findTabletCombination = (targetDose, tablets, unit, smartRoundingUnit) => {
         
         // 1. Calculate Option B (Clinically safe dose - rounded to nearest unit)
@@ -321,15 +323,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const numSmart = Math.round(targetDose / smartRoundingUnit);
         const doseA = numSmart * smartRoundingUnit;
         
-        // Decision: If Dose A results in at least one largest tablet and is acceptably close to Dose B, use Dose A for cleaner prescription.
-        const largestTablet = tablets[0]; 
-        const diff = Math.abs(doseA - doseB);
+        // New calculation for difference based on the target dose, not doseB
+        const targetDiff = Math.abs(targetDose - doseA); 
         
         let finalDose;
         let suggestion = '';
-
-        // Only try Dose A if it results in at least one smart-sized tablet and is acceptably close (within 1 unit)
-        if (numSmart >= 1 && diff <= unit) { 
+        
+        // FIX: Use targetDiff and half the smartRoundingUnit as the maximum acceptable deviation.
+        // This ensures aggressive rounding (e.g., 2750 -> 3000) for simplification.
+        if (numSmart >= 1 && targetDiff <= (smartRoundingUnit / 2)) { 
             finalDose = doseA;
             if (doseA !== doseB) {
                  suggestion = `<strong>تعدیل دوز:</strong> دوز محاسبه شده از ${doseB} به ${finalDose} میلی‌گرم رند شد تا مصرف قرص‌ها (به صورت ${numSmart} عدد قرص ${smartRoundingUnit} میلی‌گرم) ساده‌تر باشد.`;
@@ -338,13 +340,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Otherwise, stick to the clinically safer, unit-rounded dose
             finalDose = doseB;
             
-            // Check if Dose B requires variety for suggestion
+            // Check if Dose B requires variety for suggestion (Suggestion for simplification)
+            const largestTablet = tablets[0]; 
             let remCheck = finalDose;
             let largestCount = Math.floor(remCheck / largestTablet);
             remCheck -= largestCount * largestTablet;
             
             if (remCheck > 0 && finalDose > largestTablet) {
-                // If the dose is mixed (e.g., 2750 = 5x500 + 1x250) but the difference from the smart round was too large
+                // If the dose is mixed (e.g., 2750 = 5x500 + 1x250) but the smart round was out of range
                 suggestion = `<strong>سادگی مصرف:</strong> دوز نهایی ${finalDose} میلی‌گرم است که با ترکیب چند قرص حاصل شده است. با مشورت پزشک، می‌توانید دوز را به نزدیک‌ترین مضرب ${smartRoundingUnit} میلی‌گرم تغییر دهید.`;
             }
         }
