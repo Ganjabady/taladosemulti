@@ -76,18 +76,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return doseMap.mid;
     };
 
-    // --- DFO Helper function to prioritize user's choice (500mg or 2000mg) and suggest optimized combination ---
+    // --- FIX: DFO Helper function to prioritize user's choice and suggest optimized combination ---
     // preferredVial is now '500' or '2000' (string)
     const getVialText = (totalDose, preferredVial) => {
         if (totalDose <= 0) return { mainText: 'دوز بسیار پایین است', suggestion: '' };
         
-        // Round to nearest 500mg
+        // Round to nearest 500mg (mandatory for DFO)
         const roundedDose = Math.round(totalDose / 500) * 500; 
         
         let mainPresentation = '';
-        let totalVials;
-
-        // Use '2000' for comparison
+        let currentVialsCount = 0;
+        
+        // 1. Calculate the chosen combination
         if (preferredVial === '2000') { 
             // Priority on 2000mg vials (to minimize number of vials)
             let rem = roundedDose;
@@ -99,26 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (num2000mg > 0) parts.push(`${num2000mg} ویال ۲ گرم`);
             if (num500mg > 0) parts.push(`${num500mg} ویال ۵۰۰ میلی‌گرم`);
             mainPresentation = parts.join(' + ');
-            totalVials = num2000mg + num500mg;
+            currentVialsCount = num2000mg + num500mg;
 
-        // Use '500' for comparison
-        } else if (preferredVial === '500') { 
+        } else { // '500' or default 
             // Priority on 500mg vials
-            totalVials = Math.ceil(roundedDose / 500);
-            mainPresentation = `${totalVials} ویال ۵۰۰ میلی‌گرم`;
-        } else {
-             // Fallback to optimized (least number of vials) if value is unknown
-             let remOpt = roundedDose;
-             const num2000mgOpt = Math.floor(remOpt / 2000);
-             remOpt %= 2000;
-             const num500mgOpt = Math.round(remOpt / 500);
-             let optimizedParts = [];
-             if (num2000mgOpt > 0) optimizedParts.push(`${num2000mgOpt} ویال ۲ گرم`);
-             if (num500mgOpt > 0) optimizedParts.push(`${num500mgOpt} ویال ۵۰۰ میلی‌گرم`);
-             mainPresentation = optimizedParts.join(' + ');
-             totalVials = num2000mgOpt + num500mgOpt;
+            currentVialsCount = Math.ceil(roundedDose / 500);
+            mainPresentation = `${currentVialsCount} ویال ۵۰۰ میلی‌گرم`;
         }
-
+        
         // 2. Calculate the fully optimized (least number of vials) combination for the suggestion 
         let remOpt = roundedDose;
         const num2000mgOpt = Math.floor(remOpt / 2000);
@@ -129,18 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let suggestion = '';
         
         // Suggest optimization if the displayed choice leads to more vials than the optimized choice
-        if (optimizedVialsCount < totalVials) {
+        if (optimizedVialsCount < currentVialsCount) {
             let optimizedParts = [];
             if (num2000mgOpt > 0) optimizedParts.push(`${num2000mgOpt} ویال ۲ گرم`);
             if (num500mgOpt > 0) optimizedParts.push(`${num500mgOpt} ویال ۵۰۰ میلی‌گرم`);
             
             suggestion = `<strong>پیشنهاد صرفه‌جویی:</strong> برای کاهش تعداد ویال‌های مصرفی و راحتی بیشتر، می‌توانید از ترکیب ${optimizedParts.join(' + ')} استفاده کنید.`;
-        } else if (preferredVial === '500' && roundedDose >= 2000) {
-             // If user chose 500mg but dose is high, remind them of 2g option
-             suggestion = `<strong>توجه:</strong> اگر دوز بالاست، برای راحتی بیشتر می‌توانید از ویال‌های ۲ گرمی استفاده کنید.`;
         }
         
-        return { mainText: `معادل ${mainPresentation}`, suggestion: suggestion, totalVials: totalVials };
+        return { mainText: `معادل ${mainPresentation}`, suggestion: suggestion, totalVials: currentVialsCount };
     };
 
     const calculateDeferoxamine = (weight, ferritin) => {
@@ -177,30 +162,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const dfxType = deferasiroxTypeSelect.value;
-        let dosePerKg, maxDose, tabletSizes, doseUnit;
+        let dosePerKg, maxDose, tabletSizes, doseUnit, smartRoundingUnit;
 
         if (dfxType === 'jadenu') { // NEW FORMULATION (360, 180, 90) - Coated (Jadenu/TalaJid)
             dosePerKg = getDosePerKg(ferritin, { low: 10, mid: 14, high: 24 });
             maxDose = 28;
             tabletSizes = [360, 180, 90];
             doseUnit = 90; 
+            smartRoundingUnit = 360; // Smart round to nearest 360mg (largest tablet)
         } else if (dfxType === 'exjade_asoral') { // EXJADE/ASORAL (500, 250, 125) - Dissolvable (Exjade/Asoral)
              // Initial dose: 20 mg/kg, Max: 40 mg/kg (Used for mid range)
              dosePerKg = getDosePerKg(ferritin, { low: 15, mid: 20, high: 35 }); 
              maxDose = 40;
              tabletSizes = [500, 250, 125];
              doseUnit = 125; 
+             // FIX: Smart round to nearest 500mg (largest tablet for dissolvable)
+             smartRoundingUnit = 500; 
         } else {
              // Fallback: If no type is selected or type is unknown, default to the coated tablets (Jadenu)
              dosePerKg = getDosePerKg(ferritin, { low: 10, mid: 14, high: 24 });
              maxDose = 28;
              tabletSizes = [360, 180, 90];
              doseUnit = 90; 
+             smartRoundingUnit = 360;
              addWarning('<strong>توجه:</strong> نوع دفرازیروکس مشخص نشده است. محاسبات بر اساس قرص‌های روکش‌دار (مثل Jadenu) انجام شد.', 'info');
         }
 
         dosePerKg = Math.min(dosePerKg, maxDose);
-        const doseResult = findTabletCombination(weight * dosePerKg, tabletSizes, doseUnit);
+        
+        // Passing smartRoundingUnit to the function
+        const doseResult = findTabletCombination(weight * dosePerKg, tabletSizes, doseUnit, smartRoundingUnit);
 
         resultMainTitle.textContent = 'دوز پیشنهادی روزانه';
         doseText.textContent = `${doseResult.totalDose} میلی‌گرم`;
@@ -251,7 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const doseMap = ferritin > 5000 ? { dfp: 80, dfx: 20, dfo: 50, dfoDays: 5 } : { dfp: 70, dfx: 15, dfo: 40, dfoDays: 4 };
             
             const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
-            const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90); // Assumes Jadenu/Coated in combo
+            // Combo assumes Jadenu/Coated (Smart Rounding Unit: 360)
+            const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90, 360); 
             // Daily equivalent dose (DFO kg * 7 days / DFO days per week)
             const dfoTotalInjectionDose = Math.round((weight * doseMap.dfo * 7 / doseMap.dfoDays) / 500) * 500; 
             const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500'); // Use 500mg vial for combo calc simplicity
@@ -267,7 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
              const doseMap = ferritin > 5000 ? { dfp: 90, dfx: 28 } : { dfp: 75, dfx: 24 };
              const dfpTotal = Math.round((weight * Math.min(doseMap.dfp, 99)) / 500) * 500;
              const dfpTablets = dfpTotal / 500;
-             const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90); // Assumes Jadenu/Coated in combo
+             // Combo assumes Jadenu/Coated (Smart Rounding Unit: 360)
+             const dfxResult = findTabletCombination(weight * Math.min(doseMap.dfx, 28), [360, 180, 90], 90, 360); 
 
              htmlDetails += `<div class="combo-result"><span><strong>دفریپرون:</strong> ${dfpTotal} میلی‌گرم (${dfpTablets} قرص)</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfp} mg/kg)</span><span class="combo-days">هر روز (سه نوبت)</span></div>`
                           + `<div class="combo-result"><span><strong>دفراسیروکس:</strong> ${dfxResult.totalDose} میلی‌گرم (${dfxResult.combination})</span><span class="dose-per-kg-text">(بر اساس ${doseMap.dfx} mg/kg)</span><span class="combo-days">هر روز (یک نوبت)</span></div>`;
@@ -298,7 +291,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const dfxKg = Math.min(25, baseDosePerDay - 15); 
             const dfoKgEquivalent = baseDosePerDay - dfxKg; 
             
-            const dfxResult = findTabletCombination(weight * dfxKg, [360, 180, 90], 90); // Assumes Jadenu/Coated in combo
+            // Combo assumes Jadenu/Coated (Smart Rounding Unit: 360)
+            const dfxResult = findTabletCombination(weight * dfxKg, [360, 180, 90], 90, 360); 
             
             const dfoTotalInjectionDose = Math.round((weight * dfoKgEquivalent * 7 / dfoDays) / 500) * 500; 
             const dfoVialInfo = getVialText(dfoTotalInjectionDose, '500'); // Use 500mg vial for combo calc simplicity
@@ -317,41 +311,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if(monitoring.size > 0) addWarning(`<strong>پایش‌های لازم:</strong> ${[...monitoring].join('، ')}`, 'warning');
     };
 
-    // --- findTabletCombination for DFX (Minimizing Variety) ---
-    const findTabletCombination = (targetDose, tablets, unit) => {
+    // --- findTabletCombination for DFX (Minimizing Variety & Smart Rounding) ---
+    const findTabletCombination = (targetDose, tablets, unit, smartRoundingUnit) => {
         
-        const largestTablet = tablets[0]; // e.g., 360 or 500
-        
-        // Option B: Clinically safe dose (rounded to nearest unit)
+        // 1. Calculate Option B (Clinically safe dose - rounded to nearest unit)
         const doseB = Math.round(targetDose / unit) * unit;
         
-        // Option A: Round to nearest multiple of the largest tablet (for cleaner prescription, e.g., multiples of 360)
-        const numLargest = Math.round(targetDose / largestTablet);
-        const doseA = numLargest * largestTablet;
+        // 2. Calculate Option A (Smart Rounding - rounded to nearest multiple of the largest practical tablet size)
+        const numSmart = Math.round(targetDose / smartRoundingUnit);
+        const doseA = numSmart * smartRoundingUnit;
         
-        // Decision: If Dose A is within 1 unit (e.g., 90mg or 125mg) of the clinically safe Dose B, use Dose A for cleaner prescription.
+        // Decision: If Dose A results in at least one largest tablet and is acceptably close to Dose B, use Dose A for cleaner prescription.
+        const largestTablet = tablets[0]; 
         const diff = Math.abs(doseA - doseB);
         
         let finalDose;
         let suggestion = '';
 
-        // Only try Dose A if it results in at least one largest tablet and is acceptably close
-        if (numLargest >= 1 && diff <= unit) { 
+        // Only try Dose A if it results in at least one smart-sized tablet and is acceptably close (within 1 unit)
+        if (numSmart >= 1 && diff <= unit) { 
             finalDose = doseA;
             if (doseA !== doseB) {
-                 suggestion = `<strong>تعدیل دوز:</strong> دوز محاسبه شده از ${doseB} به ${finalDose} میلی‌گرم رند شد تا مصرف قرص‌ها (به صورت ${numLargest} عدد قرص ${largestTablet} میلی‌گرم) ساده‌تر باشد.`;
+                 suggestion = `<strong>تعدیل دوز:</strong> دوز محاسبه شده از ${doseB} به ${finalDose} میلی‌گرم رند شد تا مصرف قرص‌ها (به صورت ${numSmart} عدد قرص ${smartRoundingUnit} میلی‌گرم) ساده‌تر باشد.`;
             }
         } else {
             // Otherwise, stick to the clinically safer, unit-rounded dose
             finalDose = doseB;
             
-            // Check if Dose B requires variety (more than one tablet size or more than one tablet total) for suggestion
+            // Check if Dose B requires variety for suggestion
             let remCheck = finalDose;
             let largestCount = Math.floor(remCheck / largestTablet);
             remCheck -= largestCount * largestTablet;
             
             if (remCheck > 0 && finalDose > largestTablet) {
-                suggestion = `<strong>سادگی مصرف:</strong> دوز نهایی ${finalDose} میلی‌گرم است که با ترکیب چند قرص حاصل شده است. با مشورت پزشک، می‌توانید دوز را به نزدیک‌ترین مضرب ${largestTablet} میلی‌گرم تغییر دهید.`;
+                // If the dose is mixed (e.g., 2750 = 5x500 + 1x250) but the difference from the smart round was too large
+                suggestion = `<strong>سادگی مصرف:</strong> دوز نهایی ${finalDose} میلی‌گرم است که با ترکیب چند قرص حاصل شده است. با مشورت پزشک، می‌توانید دوز را به نزدیک‌ترین مضرب ${smartRoundingUnit} میلی‌گرم تغییر دهید.`;
             }
         }
 
@@ -362,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tablets.sort((a, b) => b - a).forEach(s => { 
             const count = Math.floor(rem / s); 
             if (count > 0) { 
-                // 🔴 FIX: Using 'mg' and strong LTR span to ensure correct number/unit alignment
+                // Using 'mg' and strong LTR span to ensure correct number/unit alignment
                 comb.push(`${count} عدد قرص <span dir="ltr">${s} mg</span>`); 
                 rem -= count * s; 
             } 
